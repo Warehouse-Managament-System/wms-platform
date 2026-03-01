@@ -31,9 +31,9 @@ All branches must follow this format:
 
 ```
 feature/identity-service/ali/add-oauth2-login
-fix/reservation-service/jane/payment-race-condition
-chore/infra/ali/upgrade-gradle-9
-docs/all/ali/update-api-docs
+fix/reservation-service/said/payment-race-condition
+chore/infra/gulay/upgrade-gradle-9
+docs/all/anar/update-api-docs
 ```
 
 **Exempt branches:** `main`, `master`, `develop`, `release/*`
