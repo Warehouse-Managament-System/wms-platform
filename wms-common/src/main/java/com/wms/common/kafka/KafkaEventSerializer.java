@@ -1,0 +1,26 @@
+package com.wms.common.kafka;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.apache.kafka.common.serialization.Serializer;
+
+public class KafkaEventSerializer<T> implements Serializer<T> {
+
+  private final ObjectMapper objectMapper;
+
+  public KafkaEventSerializer() {
+    this.objectMapper = new ObjectMapper();
+    this.objectMapper.registerModule(new JavaTimeModule());
+  }
+
+  @Override
+  public byte[] serialize(String topic, T data) {
+    if (data == null) return null;
+    try {
+      return objectMapper.writeValueAsBytes(data);
+    } catch (JsonProcessingException e) {
+      throw new IllegalArgumentException("Failed to serialize event for topic: " + topic, e);
+    }
+  }
+}

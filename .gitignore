@@ -1,0 +1,41 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE — ignore IntelliJ user-specific files, keep shared project settings
+.idea/*
+!.idea/codeStyles/
+!.idea/saveActions_settings.xml
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+*.env.local
+
+# Secrets
+*.pem
+*.key
+*credentials*
+*secret*
+
+# Logs
+*.log
+logs/
+
+# Build artifacts
+*.jar
+*.war
+*.class
+out/
+target/

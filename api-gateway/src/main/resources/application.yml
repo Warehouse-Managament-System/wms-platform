@@ -1,0 +1,50 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      routes:
+        - id: identity
+          uri: lb://identity
+          predicates:
+            - Path=/identity/**
+          filters:
+            - StripPrefix=1
+        - id: inventory
+          uri: lb://inventory
+          predicates:
+            - Path=/inventory/**
+          filters:
+            - StripPrefix=1
+        - id: reservation
+          uri: lb://reservation
+          predicates:
+            - Path=/reservation/**
+          filters:
+            - StripPrefix=1
+        - id: delivery
+          uri: lb://delivery
+          predicates:
+            - Path=/delivery/**
+          filters:
+            - StripPrefix=1
+        - id: platform
+          uri: lb://platform
+          predicates:
+            - Path=/platform/**
+          filters:
+            - StripPrefix=1
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus

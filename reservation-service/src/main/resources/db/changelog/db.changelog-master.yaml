@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-schema-reservation-service
+      author: Ali Ramazanov
+      changes:
+        - sql:
+            sql: CREATE SCHEMA IF NOT EXISTS reservation_service
+
+  - changeSet:
+      id: create-outbox-events-table
+      author: Ali Ramazanov
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS outbox_events (
+                  id             UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+                  aggregate_type VARCHAR(100) NOT NULL,
+                  aggregate_id   UUID         NOT NULL,
+                  event_type     VARCHAR(100) NOT NULL,
+                  payload        JSONB        NOT NULL,
+                  status         VARCHAR(20)  NOT NULL DEFAULT 'PENDING'
+                                     CHECK (status IN ('PENDING', 'SENT', 'FAILED')),
+                  created_at     TIMESTAMPTZ  NOT NULL DEFAULT now(),
+                  updated_at     TIMESTAMPTZ  NOT NULL DEFAULT now(),
+                  published_at   TIMESTAMPTZ
+              );
+
+              CREATE INDEX IF NOT EXISTS idx_outbox_pending
+                  ON outbox_events(status) WHERE status = 'PENDING';
+
+              CREATE INDEX IF NOT EXISTS idx_outbox_events_created_at
+                  ON outbox_events(created_at);
