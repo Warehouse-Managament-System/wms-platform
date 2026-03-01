@@ -4,9 +4,7 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 
 # IDE — ignore IntelliJ user-specific files, keep shared project settings
-.idea/*
-!.idea/codeStyles/
-!.idea/saveActions_settings.xml
+.idea/
 *.iml
 .vscode/
 .settings/
