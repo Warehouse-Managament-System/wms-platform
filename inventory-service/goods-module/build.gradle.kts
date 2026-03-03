@@ -1,4 +1,6 @@
 dependencies {
+    implementation("org.springframework.boot:spring-boot-starter")
+    implementation("org.springframework.boot:spring-boot-starter-web")
     implementation(project(":wms-common"))
     implementation(project(":inventory-service:warehouse-module"))
     implementation(rootProject.libs.apache.poi)
