@@ -1,5 +1,6 @@
 databaseChangeLog:
   - changeSet:
+      id: create-schema-identity-service
       author: anar arabli
       changes:
         - createTable:
@@ -30,7 +31,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: created_at
-                  type: TIMESTAMP
+                  type: timestamptz
                   defaultValueComputed: now()
                   constraints:
                     nullable: false
