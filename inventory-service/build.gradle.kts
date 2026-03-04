@@ -3,5 +3,5 @@ dependencies {
     implementation(project(":inventory-service:warehouse-module"))
     implementation(project(":inventory-service:goods-module"))
     implementation(libs.spring.cloud.starter.openfeign)
-    implementation(libs.resilience4j.spring.boot3)
+    implementation(libs.spring.cloud.starter.circuitbreaker.resilience4j)
 }

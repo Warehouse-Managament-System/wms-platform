@@ -12,7 +12,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - identity-data:/var/lib/postgresql/data
+      - identity-data:/var/lib/postgresql
 
   inventory-db:
     image: postgres:18
@@ -24,7 +24,7 @@ services:
     ports:
       - "5434:5432"
     volumes:
-      - inventory-data:/var/lib/postgresql/data
+      - inventory-data:/var/lib/postgresql
 
   reservation-db:
     image: postgres:18
@@ -36,7 +36,7 @@ services:
     ports:
       - "5435:5432"
     volumes:
-      - reservation-data:/var/lib/postgresql/data
+      - reservation-data:/var/lib/postgresql
 
   delivery-db:
     image: postgres:18
@@ -48,7 +48,7 @@ services:
     ports:
       - "5436:5432"
     volumes:
-      - delivery-data:/var/lib/postgresql/data
+      - delivery-data:/var/lib/postgresql
 
   platform-db:
     image: postgres:18
@@ -60,7 +60,7 @@ services:
     ports:
       - "5437:5432"
     volumes:
-      - platform-data:/var/lib/postgresql/data
+      - platform-data:/var/lib/postgresql
 
   # ── Kafka (KRaft) ────────────────────────────────────────────────────
 
@@ -70,9 +70,10 @@ services:
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_LISTENERS: HOST://0.0.0.0:9092,DOCKER://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: HOST://localhost:9092,DOCKER://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: HOST:PLAINTEXT,DOCKER:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: DOCKER
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -83,14 +84,20 @@ services:
       - "9092:9092"
     volumes:
       - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   # ── Debezium Connect ─────────────────────────────────────────────────
 
   debezium:
-    image: debezium/connect:3.0
+    image: debezium/connect:3.0.0.Final
     container_name: debezium
     environment:
-      BOOTSTRAP_SERVERS: kafka:9092
+      BOOTSTRAP_SERVERS: kafka:29092
       GROUP_ID: debezium-connect
       CONFIG_STORAGE_TOPIC: debezium_configs
       OFFSET_STORAGE_TOPIC: debezium_offsets
@@ -99,9 +106,10 @@ services:
       OFFSET_STORAGE_REPLICATION_FACTOR: 1
       STATUS_STORAGE_REPLICATION_FACTOR: 1
     ports:
-      - "8083:8083"
+      - "8084:8083"
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
 
   # ── Redis ─────────────────────────────────────────────────────────────
 

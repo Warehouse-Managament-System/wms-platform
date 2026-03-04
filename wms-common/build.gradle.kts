@@ -14,8 +14,5 @@ dependencies {
     api(libs.micrometer.tracing.bridge.otel)
     api(libs.opentelemetry.exporter.otlp)
     api(libs.logback.logstash.encoder)
-    implementation(libs.apache.poi)
-    implementation(libs.apache.poi.ooxml)
-    implementation(libs.stripe.java)
     testImplementation(libs.spring.boot.starter.test)
 }

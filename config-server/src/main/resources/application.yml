@@ -20,3 +20,9 @@ eureka:
   instance:
     prefer-ip-address: true
     hostname: localhost
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus

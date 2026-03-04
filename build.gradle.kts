@@ -75,7 +75,7 @@ configure(subprojects.filter { it.name in serviceProjects }) {
     apply(plugin = "org.springframework.boot")
 
     dependencies {
-        implementation(platform("org.springframework.cloud:spring-cloud-dependencies:${rootProject.property("springCloudVersion")}"))
+        implementation(platform("org.springframework.cloud:spring-cloud-dependencies:${rootProject.libs.versions.spring.cloud.get()}"))
         implementation(rootProject.libs.spring.boot.starter.actuator)
         testImplementation(rootProject.libs.spring.boot.starter.test)
     }
