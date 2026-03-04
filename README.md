@@ -21,14 +21,37 @@ This monorepo contains all WMS microservices as Gradle subprojects:
 ## Getting Started
 
 ```bash
-# Start infrastructure
+# Start infrastructure (PostgreSQL, Kafka, Redis, Observability)
 docker compose up -d
 
 # Build all projects (also installs Git hooks)
 ./gradlew build
+```
 
-# Run a specific service
+## Running Services
+
+**All services at once:**
+
+```bash
+./gradlew bootRun --parallel
+```
+
+**Individually (start infrastructure services first):**
+
+```bash
+# 1. Infrastructure services
+./gradlew :eureka-server:bootRun
+./gradlew :config-server:bootRun
+
+# 2. Gateway
+./gradlew :api-gateway:bootRun
+
+# 3. Business services
 ./gradlew :identity-service:bootRun
+./gradlew :inventory-service:bootRun
+./gradlew :reservation-service:bootRun
+./gradlew :delivery-service:bootRun
+./gradlew :platform-service:bootRun
 ```
 
 ## Development Workflow

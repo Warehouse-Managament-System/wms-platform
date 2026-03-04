@@ -66,7 +66,7 @@ if [[ -n "$STAGED_FILES" ]]; then
     JAVA_FILES=$(echo "$STAGED_FILES" | grep '\.java$' || true)
     if [[ -n "$JAVA_FILES" ]]; then
         for file in $JAVA_FILES; do
-            DEBUG_LINES=$(git diff --cached "$file" | grep -n '^\+.*System\.\(out\|err\)\.println' || true)
+            DEBUG_LINES=$(git diff --cached "$file" | grep -nE '^\+.*System\.(out|err)\.println' || true)
             if [[ -n "$DEBUG_LINES" ]]; then
                 echo -e "${YELLOW}${BOLD}WARNING:${NC} Debug statement found in ${YELLOW}$file${NC}:"
                 echo "$DEBUG_LINES" | while read -r line; do
@@ -86,7 +86,7 @@ if [[ -n "$STAGED_FILES" ]]; then
     for file in $STAGED_FILES; do
         # Only check text files that exist
         if [[ -f "$file" ]]; then
-            CONFLICT_MARKERS=$(git diff --cached "$file" | grep -E '^\+.*(<{7}|={7}|>{7})' || true)
+            CONFLICT_MARKERS=$(git diff --cached "$file" | grep -E '^\+.*((<){7}|(=){7}|(>){7})' || true)
             if [[ -n "$CONFLICT_MARKERS" ]]; then
                 echo -e "${RED}${BOLD}ERROR:${NC} Merge conflict markers found in ${RED}$file${NC}:"
                 echo "$CONFLICT_MARKERS" | while read -r line; do

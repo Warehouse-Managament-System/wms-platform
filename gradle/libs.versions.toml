@@ -1,10 +1,10 @@
 [versions]
-spring-boot = "4.0.0"
-spring-cloud = "2025.0.0"
+spring-boot = "4.0.3"
+spring-cloud = "2025.1.1"
 jjwt = "0.12.6"
 stripe = "28.3.0"
 apache-poi = "5.4.0"
-resilience4j = "2.3.0"
+opencsv = "5.12.0"
 testcontainers = "1.20.4"
 lombok = "1.18.42"
 opentelemetry = "1.45.0"
@@ -22,13 +22,16 @@ spring-boot-starter-validation = { module = "org.springframework.boot:spring-boo
 spring-boot-starter-mail = { module = "org.springframework.boot:spring-boot-starter-mail" }
 spring-boot-starter-quartz = { module = "org.springframework.boot:spring-boot-starter-quartz" }
 spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+spring-security-test = { module = "org.springframework.security:spring-security-test" }
 spring-batch-core = { module = "org.springframework.batch:spring-batch-core" }
-spring-cloud-starter-gateway = { module = "org.springframework.cloud:spring-cloud-starter-gateway" }
+spring-cloud-starter-gateway = { module = "org.springframework.cloud:spring-cloud-starter-gateway-server-webmvc" }
 spring-cloud-starter-config = { module = "org.springframework.cloud:spring-cloud-config-server" }
 spring-cloud-starter-netflix-eureka-server = { module = "org.springframework.cloud:spring-cloud-starter-netflix-eureka-server" }
 spring-cloud-starter-netflix-eureka-client = { module = "org.springframework.cloud:spring-cloud-starter-netflix-eureka-client" }
 spring-cloud-starter-openfeign = { module = "org.springframework.cloud:spring-cloud-starter-openfeign" }
+spring-cloud-starter-circuitbreaker-resilience4j = { module = "org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
@@ -38,7 +41,7 @@ jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
 stripe-java = { module = "com.stripe:stripe-java", version.ref = "stripe" }
 apache-poi = { module = "org.apache.poi:poi", version.ref = "apache-poi" }
 apache-poi-ooxml = { module = "org.apache.poi:poi-ooxml", version.ref = "apache-poi" }
-resilience4j-spring-boot3 = { module = "io.github.resilience4j:resilience4j-spring-boot3", version.ref = "resilience4j" }
+opencsv = { module = "com.opencsv:opencsv", version.ref = "opencsv" }
 micrometer-tracing-bridge-otel = { module = "io.micrometer:micrometer-tracing-bridge-otel" }
 opentelemetry-exporter-otlp = { module = "io.opentelemetry:opentelemetry-exporter-otlp", version.ref = "opentelemetry" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
