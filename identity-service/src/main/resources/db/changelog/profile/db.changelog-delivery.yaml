@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
-      id: 2026-03-04-create-delivery-agent-profiles-table
-      author: anar
+      id: create-schema-identity-service
+      author: anar arabli
       changes:
         - createTable:
             tableName: delivery_agent_profiles
