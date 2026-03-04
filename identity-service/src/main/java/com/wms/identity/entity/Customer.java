@@ -17,7 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CustomerProfile {
+public class Customer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -27,7 +27,7 @@ public class CustomerProfile {
     @JoinColumn(
         name = "user_id",
         nullable = false,
-        foreignKey = @ForeignKey(name = "fk_customer_profiles_users")
+        foreignKey = @ForeignKey(name = "fk_customer_profiles_users_user_id")
     )
     private User user;
 
