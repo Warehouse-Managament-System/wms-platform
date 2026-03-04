@@ -1,0 +1,54 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-schema-identity-service
+      author: anar arabli
+      changes:
+        - createTable:
+            tableName: delivery_agent_profiles
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  defaultValueComputed: gen_random_uuid()
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: warehouse_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: vehicle_info
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: delivery_agent_profiles
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_delivery_agent_profiles_user
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: delivery_agent_profiles
+            baseColumnNames: warehouse_id
+            referencedTableName: warehouses
+            referencedColumnNames: id
+            constraintName: fk_delivery_agent_profiles_warehouse
+      rollback:
+        - dropTable:
+            tableName: delivery_agent_profiles
+
