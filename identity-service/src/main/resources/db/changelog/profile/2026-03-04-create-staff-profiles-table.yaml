@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
-      id: create-schema-staff-service
-      author: anar arabli
+      id: 2026-03-04-create-staff-profiles-table
+      author: anar
       changes:
         - createTable:
             tableName: staff_profiles
