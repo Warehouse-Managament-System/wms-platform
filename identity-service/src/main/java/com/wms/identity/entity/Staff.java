@@ -6,7 +6,10 @@ import java.util.UUID;
 import lombok.*;
 
 @Entity
-@Table(name = "staff_profiles")
+@Table(name = "staff_profiles",
+    check = {
+        @CheckConstraint(name = "ck_staff_profiles_position",constraint = "LENGTH(position) BETWEEN 2 AND 60")
+    })
 @Getter
 @Setter
 @NoArgsConstructor
