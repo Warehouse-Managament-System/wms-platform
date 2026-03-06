@@ -9,16 +9,18 @@ databaseChangeLog:
               - column:
                   name: id
                   type: UUID
+                  defaultValueComputed: gen_random_uuid()
                   constraints:
                     primaryKey: true
+                    primaryKeyName: pk_delivery_agent_profiles
                     nullable: false
-                  defaultValueComputed: gen_random_uuid()
               - column:
                   name: user_id
                   type: UUID
                   constraints:
                     nullable: false
                     unique: true
+                    uniqueConstraintName: uk_delivery_agent_profiles_user_id
               - column:
                   name: warehouse_id
                   type: UUID
@@ -26,12 +28,18 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: vehicle_info
-                  type: varchar(255)
+                  type: VARCHAR(255)
                   constraints:
                     nullable: false
               - column:
                   name: created_at
-                  type: timestamptz
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMPTZ
                   defaultValueComputed: now()
                   constraints:
                     nullable: false
@@ -42,13 +50,3 @@ databaseChangeLog:
             referencedColumnNames: id
             constraintName: fk_delivery_agent_profiles_users_user_id
             onDelete: CASCADE
-        - addForeignKeyConstraint:
-            baseTableName: delivery_agent_profiles
-            baseColumnNames: warehouse_id
-            referencedTableName: warehouses
-            referencedColumnNames: id
-            constraintName: fk_delivery_agent_profiles_warehouses_warehouse_id
-      rollback:
-        - dropTable:
-            tableName: delivery_agent_profiles
-

@@ -1,10 +1,8 @@
 package com.wms.identity.entity;
 
+import com.wms.common.entity.BaseEntity;
 import jakarta.persistence.*;
-
-import java.time.LocalDateTime;
 import java.util.UUID;
-
 import lombok.*;
 
 @Entity
@@ -14,22 +12,19 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Staff {
-  @Id
-  @GeneratedValue(strategy = GenerationType.UUID)
-  @Column(updatable = false, nullable = false)
-  private UUID id;
+public class Staff extends BaseEntity {
 
   @OneToOne
-  @JoinColumn(name = "user_id", nullable = false, unique = true, foreignKey = @ForeignKey(name = "fk_staff_profiles_users_user_id"))
+  @JoinColumn(
+      name = "user_id",
+      nullable = false,
+      unique = true,
+      foreignKey = @ForeignKey(name = "fk_staff_profiles_users_user_id"))
   private User user;
 
-  @JoinColumn(name = "warehouse_id", nullable = false, foreignKey = @ForeignKey(name = "fk_staff_profiles_warehouses_warehouse_id") )
-  private UUID warehouse;
+  @Column(name = "warehouse_id", nullable = false)
+  private UUID warehouseId;
 
   @Column(name = "position", nullable = false, length = 100)
   private String position;
-
-  @Column(name = "created_at", nullable = false)
-  private LocalDateTime createdAt;
 }

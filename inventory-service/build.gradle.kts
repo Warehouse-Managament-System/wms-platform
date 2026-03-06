@@ -4,4 +4,5 @@ dependencies {
     implementation(project(":inventory-service:goods-module"))
     implementation(libs.spring.cloud.starter.openfeign)
     implementation(libs.spring.cloud.starter.circuitbreaker.resilience4j)
+    implementation("org.springframework.boot:spring-boot-starter-liquibase")
 }

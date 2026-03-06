@@ -1,10 +1,9 @@
 package com.wms.identity.entity;
 
+import com.wms.common.entity.SoftDeleteEntity;
 import jakarta.persistence.*;
+import java.time.Instant;
 import lombok.*;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "warehouse_owner_profiles")
@@ -13,38 +12,40 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class WarehouseOwner {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(nullable = false)
-    private UUID id;
+public class WarehouseOwner extends SoftDeleteEntity {
 
-    @OneToOne
-    @JoinColumn(name = "user_id",nullable = false,unique = true, foreignKey = @ForeignKey(name = "fk_warehouse_owner_profiles_users_user_id"))
-    private User user;
+  @OneToOne
+  @JoinColumn(
+      name = "user_id",
+      nullable = false,
+      unique = true,
+      foreignKey = @ForeignKey(name = "fk_warehouse_owner_profiles_users_user_id"))
+  private User user;
 
-    @Column(name = "company_name")
-    private String companyName;
+  @Column(name = "company_name", nullable = false, length = 50)
+  private String companyName;
 
-    @Column(name = "tax_id",unique = true)
-    private String taxId;
+  @Column(name = "tax_id", unique = true, nullable = false, length = 50)
+  private String taxId;
 
-    private String address;
+  @Column(nullable = false, length = 50)
+  private String address;
 
-    private String city;
+  @Column(nullable = false, length = 30)
+  private String city;
 
-    private String country;
+  @Column(nullable = false, length = 25)
+  private String country;
 
-    @OneToOne
-    @JoinColumn(name = "approved_by",nullable = false,foreignKey = @ForeignKey(name = "fk_warehouse_owner_profiles_users_approved_by"))
-    private User approvedBy;
+  @ManyToOne
+  @JoinColumn(
+      name = "approved_by",
+      foreignKey = @ForeignKey(name = "fk_warehouse_owner_profiles_users_approved_by"))
+  private User approvedBy;
 
-    @JoinColumn(name = "approved_at")
-    private LocalDateTime approvedAt;
+  @Column(name = "approved_at")
+  private Instant approvedAt;
 
-    @JoinColumn(name = "rejection_reason")
-    private String rejectionReason;
-
-    @JoinColumn(name = "deleted_at")
-    private LocalDateTime deletedAt;
+  @Column(name = "rejection_reason")
+  private String rejectionReason;
 }
