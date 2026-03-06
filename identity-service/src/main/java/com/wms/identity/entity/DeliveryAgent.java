@@ -6,7 +6,12 @@ import java.util.UUID;
 import lombok.*;
 
 @Entity
-@Table(name = "delivery_agent_profiles")
+@Table(name = "delivery_agent_profiles",uniqueConstraints = {
+    @UniqueConstraint(name = "uk_delivery_agent_profiles_tax_id",columnNames = "tax_id"),
+    },
+    check = {
+        @CheckConstraint(name = "ck_delivery_agent_profiles_vehicle_info",constraint = "LENGTH(vehicle_info) BETWEEN 5 AND 255"),
+    })
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,6 +30,6 @@ public class DeliveryAgent extends BaseEntity {
   @Column(name = "warehouse_id", nullable = false)
   private UUID warehouseId;
 
-  @Column(name = "vehicle_info", nullable = false, length = 255)
+  @Column(name = "vehicle_info", nullable = false)
   private String vehicleInfo;
 }
