@@ -3,41 +3,52 @@ databaseChangeLog:
       id: 2026-03-04-create-customer-profiles-table
       author: gulay
       changes:
-
         - createTable:
             tableName: customer_profiles
             columns:
-
               - column:
                   name: id
                   type: UUID
+                  defaultValueComputed: gen_random_uuid()
                   constraints:
                     primaryKey: true
+                    primaryKeyName: pk_customer_profiles
                     nullable: false
-
               - column:
                   name: user_id
                   type: UUID
                   constraints:
                     nullable: false
-
+                    unique: true
+                    uniqueConstraintName: uk_customer_profiles_user_id
               - column:
                   name: company_name
                   type: VARCHAR(255)
-
               - column:
                   name: tax_id
                   type: VARCHAR(100)
                   constraints:
                     unique: true
-
+                    uniqueConstraintName: uk_customer_profiles_tax_id
               - column:
                   name: contact_person_name
                   type: VARCHAR(255)
-
+              - column:
+                  name: created_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
         - addForeignKeyConstraint:
             baseTableName: customer_profiles
             baseColumnNames: user_id
             referencedTableName: users
             referencedColumnNames: id
             constraintName: fk_customer_profiles_users_user_id
+            onDelete: CASCADE

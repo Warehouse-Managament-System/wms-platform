@@ -54,6 +54,44 @@ docker compose up -d
 ./gradlew :platform-service:bootRun
 ```
 
+## Database (Liquibase)
+
+Each service manages its own PostgreSQL database via **Liquibase** migrations that run automatically on startup.
+
+### Resetting All Databases
+
+The easiest way — destroys all Docker volumes and recreates everything:
+
+```bash
+docker compose down -v
+docker compose up -d
+```
+
+Restart the services and Liquibase will re-apply all migrations from scratch.
+
+### Resetting a Single Database
+
+Drop everything in the database (tables, schemas, Liquibase tracking) without touching other services:
+
+```bash
+# Example: reset identity-service database
+docker exec identity-db psql -U postgres -d identity_db -c "
+  DROP SCHEMA public CASCADE;
+  CREATE SCHEMA public;
+  DROP SCHEMA IF EXISTS identity_service CASCADE;
+"
+```
+
+| Service | Container | Database | Schema |
+|---|---|---|---|
+| identity-service | `identity-db` | `identity_db` | `identity_service` |
+| inventory-service | `inventory-db` | `inventory_db` | `inventory_service` |
+| reservation-service | `reservation-db` | `reservation_db` | `reservation_service` |
+| delivery-service | `delivery-db` | `delivery_db` | `delivery_service` |
+| platform-service | `platform-db` | `platform_db` | `platform_service` |
+
+Restart the service after resetting — Liquibase will re-apply all migrations on startup.
+
 ## Development Workflow
 
 ### Code Formatting
