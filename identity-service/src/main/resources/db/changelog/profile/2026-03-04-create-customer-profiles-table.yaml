@@ -23,16 +23,21 @@ databaseChangeLog:
                     uniqueConstraintName: uk_customer_profiles_user_id
               - column:
                   name: company_name
-                  type: VARCHAR(255)
-              - column:
-                  name: tax_id
                   type: VARCHAR(100)
                   constraints:
+                    nullable: false
+              - column:
+                  name: tax_id
+                  type: VARCHAR(16)
+                  constraints:
+                    nullable: false
                     unique: true
                     uniqueConstraintName: uk_customer_profiles_tax_id
               - column:
                   name: contact_person_name
-                  type: VARCHAR(255)
+                  type: VARCHAR(60)
+                  constraints:
+                    nullable: false
               - column:
                   name: created_at
                   type: TIMESTAMPTZ
@@ -52,3 +57,16 @@ databaseChangeLog:
             referencedColumnNames: id
             constraintName: fk_customer_profiles_users_user_id
             onDelete: CASCADE
+        - sql:
+            sql: |
+              ALTER TABLE customer_profiles
+                ADD CONSTRAINT ck_customer_profiles_company_name
+                CHECK (LENGTH(company_name) BETWEEN 2 AND 100);
+
+              ALTER TABLE customer_profiles
+                ADD CONSTRAINT ck_customer_profiles_tax_id
+                CHECK (tax_id ~* '^[A-Za-z0-9-]{5,16}$');
+
+              ALTER TABLE customer_profiles
+                ADD CONSTRAINT ck_customer_profiles_contact_person_name
+                CHECK (LENGTH(contact_person_name) BETWEEN 2 AND 60);
