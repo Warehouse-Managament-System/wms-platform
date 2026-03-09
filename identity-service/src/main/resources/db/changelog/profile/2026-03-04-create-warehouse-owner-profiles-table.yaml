@@ -23,29 +23,29 @@ databaseChangeLog:
                     uniqueConstraintName: uk_warehouse_owner_profiles_user_id
               - column:
                   name: company_name
-                  type: VARCHAR(50)
+                  type: VARCHAR(100)
                   constraints:
                     nullable: false
               - column:
                   name: tax_id
-                  type: VARCHAR(50)
+                  type: VARCHAR(16)
                   constraints:
                     nullable: false
                     unique: true
                     uniqueConstraintName: uk_warehouse_owner_profiles_tax_id
               - column:
                   name: address
-                  type: VARCHAR(50)
+                  type: VARCHAR(255)
                   constraints:
                     nullable: false
               - column:
                   name: city
-                  type: VARCHAR(30)
+                  type: VARCHAR(100)
                   constraints:
                     nullable: false
               - column:
                   name: country
-                  type: VARCHAR(25)
+                  type: VARCHAR(100)
                   constraints:
                     nullable: false
               - column:
@@ -86,3 +86,24 @@ databaseChangeLog:
             referencedColumnNames: id
             constraintName: fk_warehouse_owner_profiles_users_approved_by
             onDelete: SET NULL
+        - sql:
+            sql: |
+              ALTER TABLE warehouse_owner_profiles
+                ADD CONSTRAINT ck_warehouse_owner_profiles_company_name
+                CHECK (LENGTH(company_name) BETWEEN 2 AND 100);
+
+              ALTER TABLE warehouse_owner_profiles
+                ADD CONSTRAINT ck_warehouse_owner_profiles_tax_id
+                CHECK (tax_id ~* '^[A-Za-z0-9-]{5,16}$');
+
+              ALTER TABLE warehouse_owner_profiles
+                ADD CONSTRAINT ck_warehouse_owner_profiles_address
+                CHECK (LENGTH(address) BETWEEN 5 AND 255);
+
+              ALTER TABLE warehouse_owner_profiles
+                ADD CONSTRAINT ck_warehouse_owner_profiles_city
+                CHECK (LENGTH(city) BETWEEN 2 AND 100);
+
+              ALTER TABLE warehouse_owner_profiles
+                ADD CONSTRAINT ck_warehouse_owner_profiles_country
+                CHECK (LENGTH(country) BETWEEN 2 AND 100);

@@ -27,6 +27,13 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
+                  name: tax_id
+                  type: VARCHAR(16)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uk_delivery_agent_profiles_tax_id
+              - column:
                   name: vehicle_info
                   type: VARCHAR(255)
                   constraints:
@@ -50,3 +57,12 @@ databaseChangeLog:
             referencedColumnNames: id
             constraintName: fk_delivery_agent_profiles_users_user_id
             onDelete: CASCADE
+        - sql:
+            sql: |
+              ALTER TABLE delivery_agent_profiles
+                ADD CONSTRAINT ck_delivery_agent_profiles_tax_id
+                CHECK (tax_id ~* '^[A-Za-z0-9-]{5,16}$');
+
+              ALTER TABLE delivery_agent_profiles
+                ADD CONSTRAINT ck_delivery_agent_profiles_vehicle_info
+                CHECK (LENGTH(vehicle_info) BETWEEN 5 AND 255);
