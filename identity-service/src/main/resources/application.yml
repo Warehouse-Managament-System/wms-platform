@@ -27,6 +27,7 @@ jwt:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
   liquibase:
+    drop-first: true
     enabled : true
     change-log: classpath:db/changelog/db.changelog-master.yaml
   kafka:

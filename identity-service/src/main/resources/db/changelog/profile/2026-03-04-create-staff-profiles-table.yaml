@@ -50,3 +50,8 @@ databaseChangeLog:
             referencedColumnNames: id
             constraintName: fk_staff_profiles_users_user_id
             onDelete: CASCADE
+        - sql:
+            sql: |
+              ALTER TABLE staff_profiles
+                ADD CONSTRAINT ck_staff_profiles_position
+                CHECK (LENGTH(position) BETWEEN 2 AND 100);

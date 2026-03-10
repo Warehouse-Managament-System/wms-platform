@@ -28,13 +28,14 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: first_name
-                  type: VARCHAR(100)
+                  type: VARCHAR(60)
+                  constraints:
+                    nullable: false
               - column:
                   name: last_name
-                  type: VARCHAR(100)
-              - column:
-                  name: phone
-                  type: VARCHAR(50)
+                  type: VARCHAR(60)
+                  constraints:
+                    nullable: false
               - column:
                   name: role
                   type: VARCHAR(50)
@@ -58,12 +59,27 @@ databaseChangeLog:
                   constraints:
                     nullable: false
         - sql:
-            comment: CHECK constraints for enum columns (Liquibase Pro feature)
             sql: |
               ALTER TABLE users
-                  ADD CONSTRAINT ck_users_role
-                  CHECK (role IN ('SUPER_ADMIN', 'WAREHOUSE_OWNER', 'CUSTOMER', 'STAFF', 'DELIVERY_AGENT'));
+                ADD CONSTRAINT ck_users_role
+                CHECK (role IN ('SUPER_ADMIN', 'WAREHOUSE_OWNER', 'CUSTOMER', 'STAFF', 'DELIVERY_AGENT'));
 
               ALTER TABLE users
-                  ADD CONSTRAINT ck_users_status
-                  CHECK (status IN ('PENDING_APPROVAL', 'ACTIVE', 'INACTIVE', 'SUSPENDED', 'DEACTIVATED'));
+                ADD CONSTRAINT ck_users_status
+                CHECK (status IN ('PENDING_APPROVAL', 'ACTIVE', 'INACTIVE', 'SUSPENDED', 'DEACTIVATED'));
+
+              ALTER TABLE users
+                ADD CONSTRAINT ck_users_first_name
+                CHECK (LENGTH(first_name) BETWEEN 2 AND 60);
+
+              ALTER TABLE users
+                ADD CONSTRAINT ck_users_last_name
+                CHECK (LENGTH(last_name) BETWEEN 2 AND 60);
+
+              ALTER TABLE users
+                ADD CONSTRAINT ck_users_email
+                CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$');
+
+              ALTER TABLE users
+                ADD CONSTRAINT ck_users_password
+                CHECK (LENGTH(password) >= 60);

@@ -6,7 +6,16 @@ import java.util.UUID;
 import lombok.*;
 
 @Entity
-@Table(name = "staff_profiles")
+@Table(
+    name = "staff_profiles",
+    uniqueConstraints = {
+      @UniqueConstraint(name = "uk_staff_profiles_user_id", columnNames = "user_id")
+    },
+    check = {
+      @CheckConstraint(
+          name = "ck_staff_profiles_position",
+          constraint = "LENGTH(position) BETWEEN 2 AND 100")
+    })
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,7 +27,6 @@ public class Staff extends BaseEntity {
   @JoinColumn(
       name = "user_id",
       nullable = false,
-      unique = true,
       foreignKey = @ForeignKey(name = "fk_staff_profiles_users_user_id"))
   private User user;
 
