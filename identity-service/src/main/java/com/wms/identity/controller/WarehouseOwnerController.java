@@ -32,22 +32,22 @@ public class WarehouseOwnerController {
         return service.getAll();
     }
 
-    @PostMapping("/{id}/approve")
-    public void approve(
-        @PathVariable UUID id,
-        @RequestParam UUID adminId) {
+//    @PostMapping("/{id}/approve")
+//    public void approve(
+//        @PathVariable UUID id,
+//        @RequestParam UUID adminId) {
+//
+//        service.approve(id, adminId);
+//    }
 
-        service.approve(id, adminId);
-    }
-
-    @PostMapping("/{id}/reject")
-    public void reject(
-        @PathVariable UUID id,
-        @RequestParam UUID adminId,
-        @RequestBody RejectWarehouseOwnerRequest request) {
-
-        service.reject(id, adminId, request.getReason());
-    }
+//    @PostMapping("/{id}/reject")
+//    public void reject(
+//        @PathVariable UUID id,
+//        @RequestParam UUID adminId,
+//        @RequestBody RejectWarehouseOwnerRequest request) {
+//
+//        service.reject(id, adminId, request.getReason());
+//    }
     @PutMapping("/{id}")
     public void update(
         @PathVariable UUID id,
