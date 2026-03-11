@@ -6,6 +6,7 @@ import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
 
+
 @MappedSuperclass
 @Getter
 @Setter
@@ -31,4 +32,6 @@ public abstract class BaseEntity {
   protected void onUpdate() {
     updatedAt = Instant.now();
   }
+
+
 }

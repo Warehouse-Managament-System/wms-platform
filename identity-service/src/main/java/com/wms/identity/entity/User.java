@@ -1,8 +1,8 @@
 package com.wms.identity.entity;
 
 import com.wms.common.entity.BaseEntity;
-import com.wms.common.enums.UserRole;
-import com.wms.common.enums.UserStatus;
+import com.wms.identity.enums.Role;
+import com.wms.identity.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -43,9 +43,9 @@ public class User extends BaseEntity {
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 50)
-  private UserRole role;
+  private Role role;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 50)
-  private UserStatus status;
+  private Status status;
 }
