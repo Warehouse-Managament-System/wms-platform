@@ -1,0 +1,55 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-03-09-create-warehouse-table
+      author: gulay
+      changes:
+        - createTable:
+            tableName: warehouses
+            columns:
+
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: owner_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: address
+                  type: VARCHAR(255)
+
+              - column:
+                  name: city
+                  type: VARCHAR(100)
+
+              - column:
+                  name: country
+                  type: VARCHAR(100)
+
+              - column:
+                  name: latitude
+                  type: DECIMAL(10,7)
+
+              - column:
+                  name: longitude
+                  type: DECIMAL(10,7)
+
+              - column:
+                  name: total_surface_area
+                  type: DECIMAL(10,2)
+
+              - column:
+                  name: status
+                  type: VARCHAR(20)
