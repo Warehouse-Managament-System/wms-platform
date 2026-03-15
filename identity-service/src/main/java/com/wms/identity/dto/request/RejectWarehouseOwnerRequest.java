@@ -6,5 +6,5 @@ import lombok.*;
 @Setter
 public class RejectWarehouseOwnerRequest {
 
-    private String reason;
+  private String reason;
 }

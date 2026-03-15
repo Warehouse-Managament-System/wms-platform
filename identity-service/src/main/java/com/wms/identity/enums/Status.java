@@ -1,7 +1,8 @@
 package com.wms.identity.enums;
 
 public enum Status {
-  ACTIVE,
-  INACTIVE,
-  BLOCKED
+    PENDING,
+    ACTIVE,
+    SUSPENDED,
+    INACTIVE
 }

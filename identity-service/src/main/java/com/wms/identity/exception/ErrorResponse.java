@@ -1,15 +1,14 @@
 package com.wms.identity.exception;
 
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import java.time.Instant;
 
 @Getter
 @AllArgsConstructor
 public class ErrorResponse {
 
-    private int status;
-    private String message;
-    private Instant timestamp;
+  private int status;
+  private String message;
+  private Instant timestamp;
 }

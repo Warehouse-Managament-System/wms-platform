@@ -7,12 +7,12 @@ import lombok.Setter;
 @Setter
 public class UpdateWarehouseOwnerRequest {
 
-    private String firstName;
-    private String lastName;
+  private String firstName;
+  private String lastName;
 
-    private String companyName;
-    private String taxId;
-    private String address;
-    private String city;
-    private String country;
+  private String companyName;
+  private String taxId;
+  private String address;
+  private String city;
+  private String country;
 }

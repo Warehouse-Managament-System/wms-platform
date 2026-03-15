@@ -1,7 +1,6 @@
 package com.wms.identity.entity;
 
 import com.wms.common.entity.BaseEntity;
-import com.wms.common.entity.SoftDeleteEntity;
 import jakarta.persistence.*;
 import java.time.Instant;
 import lombok.*;

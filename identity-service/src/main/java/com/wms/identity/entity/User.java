@@ -4,9 +4,8 @@ import com.wms.common.entity.BaseEntity;
 import com.wms.common.enums.UserRole;
 import com.wms.common.enums.UserStatus;
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.time.Instant;
+import lombok.*;
 
 @Entity
 @Table(
@@ -51,6 +50,6 @@ public class User extends BaseEntity {
   @Column(nullable = false, length = 50)
   private UserStatus status;
 
-    @Column(name = "deleted_at")
-    private Instant deletedAt;
+  @Column(name = "deleted_at")
+  private Instant deletedAt;
 }

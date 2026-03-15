@@ -1,4 +1,3 @@
 package com.wms.identity.exception;
 
-public class ConflictException {
-}
+public class ConflictException {}

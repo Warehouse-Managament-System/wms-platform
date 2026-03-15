@@ -1,7 +1,8 @@
 package com.wms.identity.enums;
 
+
 public enum Role {
-  ADMIN,
-  MANAGER,
-  USER
+    ADMIN,
+    WAREHOUSE_OWNER,
+    CUSTOMER
 }

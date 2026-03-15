@@ -9,18 +9,18 @@ import lombok.*;
 @NoArgsConstructor
 public class WarehouseOwnerResponse {
 
-    private String id;
+  private String id;
 
-    private String email;
-    private String firstName;
-    private String lastName;
+  private String email;
+  private String firstName;
+  private String lastName;
 
-    private String companyName;
-    private String taxId;
-    private String address;
-    private String city;
-    private String country;
+  private String companyName;
+  private String taxId;
+  private String address;
+  private String city;
+  private String country;
 
-    private String approvedBy;
-    private String rejectionReason;
+  private String approvedBy;
+  private String rejectionReason;
 }

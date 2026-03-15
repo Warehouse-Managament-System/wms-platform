@@ -9,16 +9,16 @@ import lombok.*;
 @Builder
 public class CreateWarehouseOwnerRequest {
 
-    // USER
-    private String email;
-    private String password;
-    private String firstName;
-    private String lastName;
+  // USER
+  private String email;
+  private String password;
+  private String firstName;
+  private String lastName;
 
-    // PROFILE
-    private String companyName;
-    private String taxId;
-    private String address;
-    private String city;
-    private String country;
+  // PROFILE
+  private String companyName;
+  private String taxId;
+  private String address;
+  private String city;
+  private String country;
 }
