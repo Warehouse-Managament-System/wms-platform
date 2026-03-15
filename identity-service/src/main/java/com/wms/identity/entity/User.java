@@ -1,9 +1,10 @@
 package com.wms.identity.entity;
 
 import com.wms.common.entity.BaseEntity;
-import com.wms.identity.enums.Role;
-import com.wms.identity.enums.Status;
+import com.wms.common.enums.UserRole;
+import com.wms.common.enums.UserStatus;
 import jakarta.persistence.*;
+import java.time.Instant;
 import lombok.*;
 
 @Entity
@@ -43,9 +44,12 @@ public class User extends BaseEntity {
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 50)
-  private Role role;
+  private UserRole role;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 50)
-  private Status status;
+  private UserStatus status;
+
+  @Column(name = "deleted_at")
+  private Instant deletedAt;
 }

@@ -19,8 +19,6 @@ databaseChangeLog:
                   type: VARCHAR(255)
                   constraints:
                     nullable: false
-                    unique: true
-                    uniqueConstraintName: uk_users_email
               - column:
                   name: password
                   type: VARCHAR(255)
@@ -58,8 +56,16 @@ databaseChangeLog:
                   defaultValueComputed: now()
                   constraints:
                     nullable: false
+              - column:
+                  name: deleted_at
+                  type: timestamp
         - sql:
             sql: |
+              -- Partial unique index for email
+              CREATE UNIQUE INDEX uk_users_email_partial
+              ON users(email)
+              WHERE deleted_at IS NULL;
+
               ALTER TABLE users
                 ADD CONSTRAINT ck_users_role
                 CHECK (role IN ('SUPER_ADMIN', 'WAREHOUSE_OWNER', 'CUSTOMER', 'STAFF', 'DELIVERY_AGENT'));
