@@ -1,10 +1,9 @@
 package com.wms.identity.entity;
 
-import com.wms.common.entity.BaseEntity;
+import com.wms.common.entity.SoftDeleteEntity;
 import com.wms.common.enums.UserRole;
 import com.wms.common.enums.UserStatus;
 import jakarta.persistence.*;
-import java.time.Instant;
 import lombok.*;
 
 @Entity
@@ -28,7 +27,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User extends BaseEntity {
+public class User extends SoftDeleteEntity {
 
   @Column(nullable = false)
   private String email;
@@ -49,7 +48,4 @@ public class User extends BaseEntity {
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 50)
   private UserStatus status;
-
-  @Column(name = "deleted_at")
-  private Instant deletedAt;
 }

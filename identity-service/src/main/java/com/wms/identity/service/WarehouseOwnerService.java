@@ -1,20 +1,21 @@
 package com.wms.identity.service;
 
 import com.wms.common.enums.UserRole;
+import com.wms.common.enums.UserStatus;
+import com.wms.common.exception.EntityNotFoundException;
+import com.wms.common.exception.ResourceConflictException;
 import com.wms.identity.dto.request.CreateWarehouseOwnerRequest;
 import com.wms.identity.dto.request.UpdateWarehouseOwnerRequest;
 import com.wms.identity.dto.response.WarehouseOwnerResponse;
 import com.wms.identity.entity.User;
 import com.wms.identity.entity.WarehouseOwner;
-import com.wms.identity.exception.AlreadyExistsException;
-import com.wms.identity.exception.NotFoundException;
-import com.wms.identity.mapper.WarehouseOwnerMapper;
 import com.wms.identity.repository.UserRepository;
 import com.wms.identity.repository.WarehouseOwnerRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,108 +24,122 @@ import org.springframework.transaction.annotation.Transactional;
 public class WarehouseOwnerService {
 
   private final WarehouseOwnerRepository repository;
-  private final UserService userService;
   private final UserRepository userRepository;
-  private final WarehouseOwnerMapper mapper;
+  private final PasswordEncoder passwordEncoder;
 
   @Transactional
-  public void create(CreateWarehouseOwnerRequest request) {
+  public WarehouseOwnerResponse create(CreateWarehouseOwnerRequest request) {
 
-    if (repository.existsByTaxIdAndDeletedAtIsNull(request.getTaxId())) {
-      throw new AlreadyExistsException("Tax ID already exists");
+    if (repository.existsByTaxIdAndDeletedAtIsNull(request.taxId())) {
+      throw new ResourceConflictException("Tax ID already exists");
+    }
+
+    if (userRepository.existsByEmailAndDeletedAtIsNull(request.email())) {
+      throw new ResourceConflictException("Email already registered");
     }
 
     User user =
-        userService.createUser(
-            request.getEmail(),
-            request.getPassword(),
-            request.getFirstName(),
-            request.getLastName(),
-            UserRole.WAREHOUSE_OWNER);
+        User.builder()
+            .email(request.email())
+            .password(passwordEncoder.encode(request.password()))
+            .firstName(request.firstName())
+            .lastName(request.lastName())
+            .role(UserRole.WAREHOUSE_OWNER)
+            .status(UserStatus.PENDING_APPROVAL)
+            .build();
+    userRepository.save(user);
 
     WarehouseOwner owner =
         WarehouseOwner.builder()
             .user(user)
-            .companyName(request.getCompanyName())
-            .taxId(request.getTaxId())
-            .address(request.getAddress())
-            .city(request.getCity())
-            .country(request.getCountry())
+            .companyName(request.companyName())
+            .taxId(request.taxId())
+            .address(request.address())
+            .city(request.city())
+            .country(request.country())
             .build();
 
-    repository.save(owner);
+    return WarehouseOwnerResponse.from(repository.save(owner));
   }
 
+  @Transactional(readOnly = true)
   public WarehouseOwnerResponse get(UUID id) {
-
-    WarehouseOwner owner =
-        repository
-            .findById(id)
-            .orElseThrow(() -> new NotFoundException("Warehouse owner not found"));
-    return mapper.toResponse(owner);
+    return WarehouseOwnerResponse.from(findActiveOrThrow(id));
   }
 
+  @Transactional(readOnly = true)
   public List<WarehouseOwnerResponse> getAll() {
-
-    return repository.findAllActive().stream().map(mapper::toResponse).toList();
+    return repository.findAllActive().stream().map(WarehouseOwnerResponse::from).toList();
   }
-
-  //    @Transactional
-  //    public void approve(UUID ownerId, UUID adminId) {
-  //
-  //        WarehouseOwner owner = repository.findActiveById(ownerId)
-  //            .orElseThrow(() -> new NotFoundException("Warehouse owner not found"));
-  //
-  //        User admin = userRepository.findById(adminId)
-  //            .orElseThrow(() -> new NotFoundException("Admin not found"));
-  //
-  //        owner.setApprovedBy(admin);
-  //        owner.setApprovedAt(Instant.now());
-  //        owner.setRejectionReason(null);
-  //    }
-  //
-  //    @Transactional
-  //    public void reject(UUID ownerId, UUID adminId, String reason) {
-  //
-  //        WarehouseOwner owner = repository.findActiveById(ownerId)
-  //            .orElseThrow(() -> new NotFoundException("Warehouse owner not found"));
-  //
-  //        User admin = userRepository.findById(adminId)
-  //            .orElseThrow(() -> new RuntimeException("Admin not found"));
-  //
-  //        owner.setApprovedBy(admin);
-  //        owner.setRejectionReason(reason);
-  //        owner.setApprovedAt(null);
-  //    }
 
   @Transactional
-  public void update(UUID id, UpdateWarehouseOwnerRequest request) {
+  public WarehouseOwnerResponse approve(UUID ownerId, UUID adminId) {
 
-    WarehouseOwner owner =
-        repository
-            .findActiveById(id)
-            .orElseThrow(() -> new NotFoundException("Warehouse owner not found"));
+    WarehouseOwner owner = findActiveOrThrow(ownerId);
+
+    User admin =
+        userRepository
+            .findById(adminId)
+            .orElseThrow(() -> new EntityNotFoundException("Admin", adminId));
+
+    owner.setApprovedBy(admin);
+    owner.setApprovedAt(Instant.now());
+    owner.setRejectionReason(null);
+    owner.getUser().setStatus(UserStatus.ACTIVE);
+
+    return WarehouseOwnerResponse.from(repository.save(owner));
+  }
+
+  @Transactional
+  public WarehouseOwnerResponse reject(UUID ownerId, UUID adminId, String reason) {
+    WarehouseOwner owner = findActiveOrThrow(ownerId);
+    User admin =
+        userRepository
+            .findById(adminId)
+            .orElseThrow(() -> new EntityNotFoundException("Admin", adminId));
+
+    owner.setApprovedBy(admin);
+    owner.setRejectionReason(reason);
+    owner.setApprovedAt(null);
+    owner.getUser().setStatus(UserStatus.DEACTIVATED);
+
+    return WarehouseOwnerResponse.from(repository.save(owner));
+  }
+
+  @Transactional
+  public WarehouseOwnerResponse update(UUID id, UpdateWarehouseOwnerRequest request) {
+    WarehouseOwner owner = findActiveOrThrow(id);
+
+    if (request.taxId() != null && !request.taxId().equals(owner.getTaxId())) {
+      if (repository.existsByTaxIdAndDeletedAtIsNullAndIdNot(request.taxId(), id)) {
+        throw new ResourceConflictException("Tax ID already in use");
+      }
+
+      owner.setTaxId(request.taxId());
+    }
+
     User user = owner.getUser();
-    user.setFirstName(request.getFirstName());
-    user.setLastName(request.getLastName());
+    if (request.firstName() != null) user.setFirstName(request.firstName());
+    if (request.lastName() != null) user.setLastName(request.lastName());
+    if (request.companyName() != null) owner.setCompanyName(request.companyName());
+    if (request.address() != null) owner.setAddress(request.address());
+    if (request.city() != null) owner.setCity(request.city());
+    if (request.country() != null) owner.setCountry(request.country());
 
-    owner.setCompanyName(request.getCompanyName());
-    owner.setTaxId(request.getTaxId());
-    owner.setAddress(request.getAddress());
-    owner.setCity(request.getCity());
-    owner.setCountry(request.getCountry());
+    return WarehouseOwnerResponse.from(repository.save(owner));
   }
 
   @Transactional
   public void delete(UUID id) {
-
-    WarehouseOwner owner =
-        repository
-            .findActiveById(id)
-            .orElseThrow(() -> new NotFoundException("Warehouse owner not found"));
+    WarehouseOwner owner = findActiveOrThrow(id);
     Instant now = Instant.now();
-
     owner.setDeletedAt(now);
     owner.getUser().setDeletedAt(now);
+  }
+
+  private WarehouseOwner findActiveOrThrow(UUID id) {
+    return repository
+        .findActiveById(id)
+        .orElseThrow(() -> new EntityNotFoundException("WarehouseOwner", id));
   }
 }

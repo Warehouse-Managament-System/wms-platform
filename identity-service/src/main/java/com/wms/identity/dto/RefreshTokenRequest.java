@@ -1,10 +1,6 @@
 package com.wms.identity.dto;
 
-import lombok.Data;
+import jakarta.validation.constraints.NotBlank;
 
-@Data
-public class RefreshTokenRequest {
-
-    private String refreshToken;
-
-}
+public record RefreshTokenRequest(
+    @NotBlank(message = "Refresh token is required") String refreshToken) {}

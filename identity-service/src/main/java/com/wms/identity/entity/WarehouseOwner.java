@@ -1,6 +1,6 @@
 package com.wms.identity.entity;
 
-import com.wms.common.entity.BaseEntity;
+import com.wms.common.entity.SoftDeleteEntity;
 import jakarta.persistence.*;
 import java.time.Instant;
 import lombok.*;
@@ -34,7 +34,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class WarehouseOwner extends BaseEntity {
+public class WarehouseOwner extends SoftDeleteEntity {
 
   @OneToOne
   @JoinColumn(
@@ -69,7 +69,4 @@ public class WarehouseOwner extends BaseEntity {
 
   @Column(name = "rejection_reason", length = 500)
   private String rejectionReason;
-
-  @Column(name = "deleted_at")
-  private Instant deletedAt;
 }

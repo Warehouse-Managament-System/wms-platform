@@ -1,16 +1,18 @@
 package com.wms.identity.service;
 
+import com.wms.common.dto.PageResponse;
 import com.wms.common.enums.UserRole;
 import com.wms.common.enums.UserStatus;
+import com.wms.common.exception.EntityNotFoundException;
+import com.wms.identity.dto.user.UserResponse;
 import com.wms.identity.entity.User;
-import com.wms.identity.exception.NotFoundException;
 import com.wms.identity.repository.UserRepository;
+import com.wms.identity.specification.UserSpecification;
 import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,59 +21,56 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
   private final UserRepository userRepository;
-  private final PasswordEncoder passwordEncoder;
 
-  public User createUser(
-      String email, String password, String firstName, String lastName, UserRole role) {
+  @Transactional(readOnly = true)
+  public UserResponse getUserById(UUID userId) {
+    User user =
+        userRepository
+            .findByIdAndDeletedAtIsNull(userId)
+            .orElseThrow(() -> new EntityNotFoundException("User", userId));
+    return UserResponse.from(user);
+  }
 
-    if (userRepository.existsByEmailAndDeletedAtIsNull(email)) {
-      throw new RuntimeException("Email already exists");
+  @Transactional(readOnly = true)
+  public PageResponse<UserResponse> search(
+      String search,
+      UserRole role,
+      UserStatus status,
+      Instant createdFrom,
+      Instant createdTo,
+      Pageable pageable) {
+
+    Specification<User> spec = UserSpecification.isNotDeleted();
+
+    if (search != null && !search.isBlank()) {
+      spec = spec.and(UserSpecification.searchByNameOrEmail(search));
     }
 
-    User user =
-        User.builder()
-            .email(email)
-            .password(passwordEncoder.encode(password))
-            .firstName(firstName)
-            .lastName(lastName)
-            .role(role)
-            .deletedAt(null)
-            .status(UserStatus.ACTIVE)
-            .build();
+    if (role != null) {
+      spec = spec.and(UserSpecification.hasRole(role));
+    }
 
-    return userRepository.save(user);
+    if (status != null) {
+      spec = spec.and(UserSpecification.hasStatus(status));
+    }
+
+    if (createdFrom != null) {
+      spec = spec.and(UserSpecification.createdAfter(createdFrom));
+    }
+
+    if (createdTo != null) {
+      spec = spec.and(UserSpecification.createdBefore(createdTo));
+    }
+
+    return PageResponse.from(userRepository.findAll(spec, pageable).map(UserResponse::from));
   }
 
   @Transactional
   public void deleteUser(UUID userId) {
-
     User user =
-        userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
-
+        userRepository
+            .findByIdAndDeletedAtIsNull(userId)
+            .orElseThrow(() -> new EntityNotFoundException("User", userId));
     user.setDeletedAt(Instant.now());
-  }
-
-  public User getUserById(UUID userId) {
-    return userRepository
-        .findById(userId)
-        .orElseThrow(() -> new NotFoundException("User not found"));
-  }
-
-  @Transactional(readOnly = true)
-  public List<User> filterUsers(
-      Optional<String> email, Optional<UserRole> role, Optional<UserStatus> status) {
-
-    List<User> filtered =
-        userRepository.findAllByDeletedAtIsNull().stream()
-            .filter(user -> email.map(e -> user.getEmail().equalsIgnoreCase(e)).orElse(true))
-            .filter(user -> role.map(r -> user.getRole() == r).orElse(true))
-            .filter(user -> status.map(s -> user.getStatus() == s).orElse(true))
-            .toList();
-
-    if (filtered.isEmpty()) {
-      throw new NotFoundException("No users found for the given filter criteria");
-    }
-
-    return filtered;
   }
 }

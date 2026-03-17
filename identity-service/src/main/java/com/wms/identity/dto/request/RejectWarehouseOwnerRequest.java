@@ -1,10 +1,7 @@
 package com.wms.identity.dto.request;
 
-import lombok.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-@Getter
-@Setter
-public class RejectWarehouseOwnerRequest {
-
-  private String reason;
-}
+public record RejectWarehouseOwnerRequest(
+    @NotBlank(message = "Reason is required") @Size(max = 500) String reason) {}

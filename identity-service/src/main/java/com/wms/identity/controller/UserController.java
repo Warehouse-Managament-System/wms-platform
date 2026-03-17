@@ -1,13 +1,17 @@
 package com.wms.identity.controller;
 
+import com.wms.common.dto.PageResponse;
 import com.wms.common.enums.UserRole;
 import com.wms.common.enums.UserStatus;
-import com.wms.identity.entity.User;
+import com.wms.identity.dto.user.UserResponse;
 import com.wms.identity.service.UserService;
-import java.util.List;
-import java.util.Optional;
+import java.time.Instant;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,18 +19,47 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class UserController {
 
+  private static final Set<String> ALLOWED_SORT_FIELDS =
+      Set.of("createdAt", "updatedAt", "email", "firstName", "lastName", "role", "status");
+
   private final UserService userService;
 
   @GetMapping("/{id}")
-  public User getUser(@PathVariable UUID id) {
-    return userService.getUserById(id);
+  public ResponseEntity<UserResponse> getUser(@PathVariable UUID id) {
+    return ResponseEntity.ok(userService.getUserById(id));
   }
 
   @GetMapping
-  public List<User> filterUsers(
-      @RequestParam Optional<String> email,
-      @RequestParam Optional<UserRole> role,
-      @RequestParam Optional<UserStatus> status) {
-    return userService.filterUsers(email, role, status);
+  public ResponseEntity<PageResponse<UserResponse>> search(
+      @RequestParam(required = false) String search,
+      @RequestParam(required = false) UserRole role,
+      @RequestParam(required = false) UserStatus status,
+      @RequestParam(required = false) Instant createdFrom,
+      @RequestParam(required = false) Instant createdTo,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "20") int size,
+      @RequestParam(defaultValue = "createdAt") String sortBy,
+      @RequestParam(defaultValue = "desc") String sortDir) {
+
+    String safeSortBy = ALLOWED_SORT_FIELDS.contains(sortBy) ? sortBy : "createdAt";
+    Sort sort =
+        sortDir.equalsIgnoreCase("asc")
+            ? Sort.by(safeSortBy).ascending()
+            : Sort.by(safeSortBy).descending();
+
+    return ResponseEntity.ok(
+        userService.search(
+            search,
+            role,
+            status,
+            createdFrom,
+            createdTo,
+            PageRequest.of(page, Math.min(size, 100), sort)));
+  }
+
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
+    userService.deleteUser(id);
+    return ResponseEntity.noContent().build();
   }
 }

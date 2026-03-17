@@ -2,16 +2,7 @@ package com.wms.identity.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Getter;
 
-@Getter
-public class LoginRequestDto {
-
-    @Email(message = "Duzgun email daxil edin")
-    @NotBlank(message = "Email bos ola bilmez")
-    private String email;
-    @NotBlank(message = "sifre bos ola bilmez")
-    private String password;
-
-
-}
+public record LoginRequestDto(
+    @Email(message = "Invalid email format") @NotBlank(message = "Email is required") String email,
+    @NotBlank(message = "Password is required") String password) {}

@@ -21,7 +21,7 @@ fi
 # Conventional Commits: <type>(<scope>): <description>
 # ---------------------------------------------------------------------------
 VALID_TYPES="feat|fix|docs|refactor|test|chore|perf|ci|style|build|revert"
-VALID_SCOPES="identity|inventory|reservation|delivery|platform|gateway|common|infra"
+VALID_SCOPES="identity|inventory|reservation|delivery|platform|gateway|common|infra|all"
 PATTERN="^(${VALID_TYPES})\((${VALID_SCOPES})\): [a-z].*[^.]$"
 
 # Check first line length
@@ -39,7 +39,7 @@ if [[ ! "$COMMIT_MSG" =~ $PATTERN ]]; then
     echo -e "  Expected: ${GREEN}<type>(<scope>): <description>${NC}"
     echo ""
     echo -e "  Types:  ${YELLOW}feat, fix, docs, refactor, test, chore, perf, ci, style, build, revert${NC}"
-    echo -e "  Scopes: ${YELLOW}identity, inventory, reservation, delivery, platform, gateway, common, infra${NC}"
+    echo -e "  Scopes: ${YELLOW}identity, inventory, reservation, delivery, platform, gateway, common, infra, all${NC}"
     echo ""
     echo -e "  Rules:"
     echo -e "    - Description must start with a ${YELLOW}lowercase${NC} letter"
