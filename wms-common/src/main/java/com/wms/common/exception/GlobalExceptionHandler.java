@@ -1,34 +1,23 @@
 package com.wms.common.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import java.time.Instant;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-/**
- * Global exception handler for the WMS platform. Handles all WmsException subclasses and other
- * common exceptions, converting them to standardized CommonErrorResponse objects.
- */
 @Slf4j
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
-  /**
-   * Handles WmsException and all its subclasses.
-   *
-   * @param ex the exception that was thrown
-   * @param request the HTTP request
-   * @return a ResponseEntity with CommonErrorResponse
-   */
   @ExceptionHandler(WmsException.class)
   public ResponseEntity<CommonErrorResponse> handleWmsException(
       WmsException ex, HttpServletRequest request) {
@@ -39,25 +28,18 @@ public class GlobalExceptionHandler {
             Instant.now(),
             ex.getHttpStatus(),
             ex.getErrorCode(),
-            ex.getMessage(),
-            request.getRequestURI());
+            sanitize(ex.getMessage()),
+            sanitize(request.getRequestURI()));
 
     return ResponseEntity.status(ex.getHttpStatus()).body(response);
   }
 
-  /**
-   * Handles validation errors from method argument validation.
-   *
-   * @param ex the exception that was thrown
-   * @param request the HTTP request
-   * @return a ResponseEntity with CommonErrorResponse
-   */
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<CommonErrorResponse> handleMethodArgumentNotValid(
       MethodArgumentNotValidException ex, HttpServletRequest request) {
     String fieldErrors =
         ex.getBindingResult().getFieldErrors().stream()
-            .map(error -> error.getField() + ": " + error.getDefaultMessage())
+            .map(error -> sanitize(error.getField()) + ": " + sanitize(error.getDefaultMessage()))
             .collect(Collectors.joining(", "));
 
     String message = "Validation failed: " + fieldErrors;
@@ -70,24 +52,17 @@ public class GlobalExceptionHandler {
             HttpStatus.BAD_REQUEST.value(),
             "VALIDATION_ERROR",
             message,
-            request.getRequestURI());
+            sanitize(request.getRequestURI()));
 
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
   }
 
-  /**
-   * Handles constraint violation exceptions from validation.
-   *
-   * @param ex the exception that was thrown
-   * @param request the HTTP request
-   * @return a ResponseEntity with CommonErrorResponse
-   */
   @ExceptionHandler(ConstraintViolationException.class)
   public ResponseEntity<CommonErrorResponse> handleConstraintViolation(
       ConstraintViolationException ex, HttpServletRequest request) {
     String violations =
         ex.getConstraintViolations().stream()
-            .map(ConstraintViolation::getMessage)
+            .map(v -> sanitize(v.getMessage()))
             .collect(Collectors.joining(", "));
 
     String message = "Constraint violation: " + violations;
@@ -100,18 +75,27 @@ public class GlobalExceptionHandler {
             HttpStatus.BAD_REQUEST.value(),
             "VALIDATION_ERROR",
             message,
-            request.getRequestURI());
+            sanitize(request.getRequestURI()));
 
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
   }
 
-  /**
-   * Generic exception handler for any unhandled exceptions.
-   *
-   * @param ex the exception that was thrown
-   * @param request the HTTP request
-   * @return a ResponseEntity with CommonErrorResponse
-   */
+  @ExceptionHandler(DataIntegrityViolationException.class)
+  public ResponseEntity<CommonErrorResponse> handleDataIntegrityViolation(
+      DataIntegrityViolationException ex, HttpServletRequest request) {
+    log.warn("Data integrity violation: {}", ex.getMostSpecificCause().getMessage());
+
+    CommonErrorResponse response =
+        new CommonErrorResponse(
+            Instant.now(),
+            HttpStatus.CONFLICT.value(),
+            "RESOURCE_CONFLICT",
+            "A conflicting resource already exists.",
+            sanitize(request.getRequestURI()));
+
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+  }
+
   @ExceptionHandler(Exception.class)
   public ResponseEntity<CommonErrorResponse> handleGenericException(
       Exception ex, HttpServletRequest request) {
@@ -123,8 +107,20 @@ public class GlobalExceptionHandler {
             HttpStatus.INTERNAL_SERVER_ERROR.value(),
             "INTERNAL_SERVER_ERROR",
             "An unexpected error occurred. Please try again later.",
-            request.getRequestURI());
+            sanitize(request.getRequestURI()));
 
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+  }
+
+  private static String sanitize(String input) {
+    if (input == null) {
+      return null;
+    }
+    return input
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("\"", "&quot;")
+        .replace("'", "&#x27;");
   }
 }

@@ -1,18 +1,12 @@
 package com.wms.identity.dto.request;
 
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.validation.constraints.Size;
 
-@Getter
-@Setter
-public class UpdateWarehouseOwnerRequest {
-
-  private String firstName;
-  private String lastName;
-
-  private String companyName;
-  private String taxId;
-  private String address;
-  private String city;
-  private String country;
-}
+public record UpdateWarehouseOwnerRequest(
+    @Size(min = 2, max = 60) String firstName,
+    @Size(min = 2, max = 60) String lastName,
+    @Size(min = 2, max = 100) String companyName,
+    @Size(min = 5, max = 16) String taxId,
+    @Size(min = 5, max = 255) String address,
+    @Size(min = 2, max = 100) String city,
+    @Size(min = 2, max = 100) String country) {}

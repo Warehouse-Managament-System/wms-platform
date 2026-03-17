@@ -58,7 +58,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: deleted_at
-                  type: timestamp
+                  type: TIMESTAMPTZ
         - sql:
             sql: |
               -- Partial unique index for email

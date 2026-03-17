@@ -2,17 +2,23 @@ package com.wms.identity.service;
 
 import com.wms.common.enums.UserRole;
 import com.wms.common.enums.UserStatus;
+import com.wms.common.exception.BusinessRuleException;
+import com.wms.common.exception.EntityNotFoundException;
+import com.wms.common.exception.ResourceConflictException;
 import com.wms.identity.config.JwtService;
 import com.wms.identity.dto.AuthResponse;
 import com.wms.identity.dto.LoginRequestDto;
 import com.wms.identity.dto.RefreshTokenRequest;
 import com.wms.identity.dto.RegisterCustomerRequest;
 import com.wms.identity.dto.RegisterOwnerRequest;
-import com.wms.identity.dto.TokenResponseDto;
+import com.wms.identity.entity.Customer;
 import com.wms.identity.entity.RefreshToken;
 import com.wms.identity.entity.User;
+import com.wms.identity.entity.WarehouseOwner;
+import com.wms.identity.repository.CustomerProfileRepository;
 import com.wms.identity.repository.RefreshTokenRepository;
 import com.wms.identity.repository.UserRepository;
+import com.wms.identity.repository.WarehouseOwnerRepository;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,7 +31,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class AuthService {
 
   private final UserRepository userRepository;
@@ -34,85 +39,127 @@ public class AuthService {
   private final JwtService jwtService;
   private final RefreshTokenService refreshTokenService;
   private final RefreshTokenRepository refreshTokenRepository;
+  private final WarehouseOwnerRepository warehouseOwnerRepository;
+  private final CustomerProfileRepository customerProfileRepository;
 
-  // OWNER REGISTER
+  @Transactional
   public void registerOwner(RegisterOwnerRequest request) {
-
-    if (userRepository.existsByEmail(request.getEmail())) {
-      throw new RuntimeException("Email artıq mövcuddur");
+    if (userRepository.existsByEmailAndDeletedAtIsNull(request.email())) {
+      throw new ResourceConflictException("Email already registered");
+    }
+    if (warehouseOwnerRepository.existsByTaxIdAndDeletedAtIsNull(request.taxId())) {
+      throw new ResourceConflictException("Tax ID already in use");
     }
 
-    User user = new User();
-
-    user.setEmail(request.getEmail());
-    user.setPassword(passwordEncoder.encode(request.getPassword()));
-    user.setRole(UserRole.WAREHOUSE_OWNER);
-    user.setStatus(UserStatus.PENDING_APPROVAL);
-
+    User user =
+        buildUser(
+            request.email(),
+            request.password(),
+            request.firstName(),
+            request.lastName(),
+            UserRole.WAREHOUSE_OWNER,
+            UserStatus.PENDING_APPROVAL);
     userRepository.save(user);
+
+    WarehouseOwner owner =
+        WarehouseOwner.builder()
+            .user(user)
+            .companyName(request.companyName())
+            .taxId(request.taxId())
+            .address(request.address())
+            .city(request.city())
+            .country(request.country())
+            .build();
+    warehouseOwnerRepository.save(owner);
   }
 
-  // CUSTOMER REGISTER
+  @Transactional
   public void registerCustomer(RegisterCustomerRequest request) {
-
-    if (userRepository.existsByEmail(request.getEmail())) {
-      throw new RuntimeException("Email artıq mövcuddur");
+    if (userRepository.existsByEmailAndDeletedAtIsNull(request.email())) {
+      throw new ResourceConflictException("Email already registered");
+    }
+    if (customerProfileRepository.existsByTaxId(request.taxId())) {
+      throw new ResourceConflictException("Tax ID already in use");
     }
 
-    User user = new User();
-
-    user.setEmail(request.getEmail());
-    user.setPassword(passwordEncoder.encode(request.getPassword()));
-    user.setRole(UserRole.CUSTOMER);
-    user.setStatus(UserStatus.ACTIVE);
-
+    User user =
+        buildUser(
+            request.email(),
+            request.password(),
+            request.firstName(),
+            request.lastName(),
+            UserRole.CUSTOMER,
+            UserStatus.ACTIVE);
     userRepository.save(user);
+
+    Customer customer =
+        Customer.builder()
+            .user(user)
+            .companyName(request.companyName())
+            .taxId(request.taxId())
+            .contactPersonName(request.contactPersonName())
+            .build();
+    customerProfileRepository.save(customer);
   }
 
-  // LOGIN
+  @Transactional
   public AuthResponse login(LoginRequestDto request) {
-
     Authentication authentication =
         authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+            new UsernamePasswordAuthenticationToken(request.email(), request.password()));
 
     UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-    String accessToken = jwtService.generateToken(userDetails);
-
     User user =
         userRepository
-            .findByEmail(userDetails.getUsername())
-            .orElseThrow(() -> new RuntimeException("User not found"));
+            .findByEmailAndDeletedAtIsNull(userDetails.getUsername())
+            .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
+    refreshTokenRepository.deleteByUserId(user.getId());
+
+    String accessToken =
+        jwtService.generateToken(user.getId(), user.getEmail(), user.getRole().name());
     RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
     return new AuthResponse(accessToken, refreshToken.getToken());
   }
 
-  // REFRESH TOKEN
-  public TokenResponseDto refreshToken(RefreshTokenRequest request) {
-
+  @Transactional
+  public AuthResponse refreshToken(RefreshTokenRequest request) {
     RefreshToken refreshToken =
         refreshTokenRepository
-            .findByToken(request.getRefreshToken())
-            .orElseThrow(() -> new RuntimeException("Refresh token not found"));
+            .findByToken(request.refreshToken())
+            .orElseThrow(() -> new EntityNotFoundException("Refresh token not found"));
 
     if (refreshToken.getExpiryDate().isBefore(Instant.now())) {
-      throw new RuntimeException("Refresh token expired");
+      refreshTokenRepository.delete(refreshToken);
+      throw new BusinessRuleException("Refresh token has expired");
     }
 
     User user = refreshToken.getUser();
+    String newAccessToken =
+        jwtService.generateToken(user.getId(), user.getEmail(), user.getRole().name());
 
-    UserDetails userDetails =
-        org.springframework.security.core.userdetails.User.builder()
-            .username(user.getEmail())
-            .password(user.getPassword())
-            .roles(user.getRole().name())
-            .build();
+    refreshTokenRepository.delete(refreshToken);
+    RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user);
 
-    String newAccessToken = jwtService.generateToken(userDetails);
+    return new AuthResponse(newAccessToken, newRefreshToken.getToken());
+  }
 
-    return new TokenResponseDto(newAccessToken, refreshToken.getToken());
+  private User buildUser(
+      String email,
+      String password,
+      String firstName,
+      String lastName,
+      UserRole role,
+      UserStatus status) {
+    return User.builder()
+        .email(email)
+        .password(passwordEncoder.encode(password))
+        .firstName(firstName)
+        .lastName(lastName)
+        .role(role)
+        .status(status)
+        .build();
   }
 }
