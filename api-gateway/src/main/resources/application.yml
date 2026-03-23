@@ -39,7 +39,7 @@ spring:
             - StripPrefix=1
 
 jwt:
-  secret: ${JWT_SECRET}
+  secret: ${JWT_SECRET:${JWT_SECRET_DEV:dev-only-secret-key-min-32-chars!!}}
 
 eureka:
   client:

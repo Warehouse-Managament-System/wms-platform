@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.util.HtmlUtils;
 
 @Slf4j
 @RestControllerAdvice
@@ -116,11 +117,6 @@ public class GlobalExceptionHandler {
     if (input == null) {
       return null;
     }
-    return input
-        .replace("&", "&amp;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
-        .replace("\"", "&quot;")
-        .replace("'", "&#x27;");
+    return HtmlUtils.htmlEscape(input);
   }
 }

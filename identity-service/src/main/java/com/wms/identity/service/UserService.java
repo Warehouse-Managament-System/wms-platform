@@ -4,6 +4,7 @@ import com.wms.common.dto.PageResponse;
 import com.wms.common.enums.UserRole;
 import com.wms.common.enums.UserStatus;
 import com.wms.common.exception.EntityNotFoundException;
+import com.wms.identity.dto.user.UpdateUserProfileRequest;
 import com.wms.identity.dto.user.UserResponse;
 import com.wms.identity.entity.User;
 import com.wms.identity.repository.UserRepository;
@@ -24,11 +25,31 @@ public class UserService {
 
   @Transactional(readOnly = true)
   public UserResponse getUserById(UUID userId) {
+    return UserResponse.from(findActiveOrThrow(userId));
+  }
+
+  @Transactional(readOnly = true)
+  public UserResponse getUserByEmail(String email) {
+
     User user =
         userRepository
-            .findByIdAndDeletedAtIsNull(userId)
-            .orElseThrow(() -> new EntityNotFoundException("User", userId));
+            .findByEmailAndDeletedAtIsNull(email)
+            .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
     return UserResponse.from(user);
+  }
+
+  @Transactional
+  public UserResponse updateProfile(String email, UpdateUserProfileRequest request) {
+    User user =
+        userRepository
+            .findByEmailAndDeletedAtIsNull(email)
+            .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+    if (request.firstName() != null) user.setFirstName(request.firstName());
+    if (request.lastName() != null) user.setLastName(request.lastName());
+
+    return UserResponse.from(userRepository.save(user));
   }
 
   @Transactional(readOnly = true)
@@ -67,10 +88,13 @@ public class UserService {
 
   @Transactional
   public void deleteUser(UUID userId) {
-    User user =
-        userRepository
-            .findByIdAndDeletedAtIsNull(userId)
-            .orElseThrow(() -> new EntityNotFoundException("User", userId));
+    User user = findActiveOrThrow(userId);
     user.setDeletedAt(Instant.now());
+  }
+
+  private User findActiveOrThrow(UUID userId) {
+    return userRepository
+        .findByIdAndDeletedAtIsNull(userId)
+        .orElseThrow(() -> new EntityNotFoundException("User", userId));
   }
 }

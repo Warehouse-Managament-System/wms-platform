@@ -31,6 +31,7 @@ public class CustomerService {
 
   @Transactional
   public CustomerResponse create(CreateCustomerRequest request) {
+
     User user =
         userRepository
             .findById(request.userId())
@@ -54,6 +55,9 @@ public class CustomerService {
             .user(user)
             .companyName(request.companyName())
             .taxId(request.taxId())
+            .address(request.address())
+            .city(request.city())
+            .country(request.country())
             .contactPersonName(request.contactPersonName())
             .build();
 
@@ -84,7 +88,7 @@ public class CustomerService {
       Instant createdTo,
       Pageable pageable) {
 
-    Specification<Customer> spec = Specification.where((Specification<Customer>) null);
+    Specification<Customer> spec = (root, query, cb) -> cb.conjunction();
 
     if (search != null && !search.isBlank()) {
       spec = spec.and(CustomerSpecification.searchByName(search));
@@ -118,10 +122,17 @@ public class CustomerService {
       if (customerRepository.existsByTaxIdAndIdNot(request.taxId(), id)) {
         throw new ResourceConflictException("Tax ID already in use");
       }
+
       customer.setTaxId(request.taxId());
     }
 
     if (request.companyName() != null) customer.setCompanyName(request.companyName());
+
+    if (request.address() != null) customer.setAddress(request.address());
+
+    if (request.city() != null) customer.setCity(request.city());
+
+    if (request.country() != null) customer.setCountry(request.country());
 
     if (request.contactPersonName() != null) {
       customer.setContactPersonName(request.contactPersonName());

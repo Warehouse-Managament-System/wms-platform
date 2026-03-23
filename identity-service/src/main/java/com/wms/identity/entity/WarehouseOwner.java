@@ -8,10 +8,6 @@ import lombok.*;
 @Entity
 @Table(
     name = "warehouse_owner_profiles",
-    uniqueConstraints = {
-      @UniqueConstraint(name = "uk_warehouse_owner_profiles_user_id", columnNames = "user_id"),
-      @UniqueConstraint(name = "uk_warehouse_owner_profiles_tax_id", columnNames = "tax_id")
-    },
     check = {
       @CheckConstraint(
           name = "ck_warehouse_owner_profiles_company_name",

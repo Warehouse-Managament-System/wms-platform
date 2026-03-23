@@ -19,6 +19,7 @@ public interface WarehouseOwnerRepository
       """
       SELECT o FROM WarehouseOwner o
       JOIN FETCH o.user
+      LEFT JOIN FETCH o.approvedBy
       WHERE o.deletedAt IS NULL
       """)
   List<WarehouseOwner> findAllActive();
@@ -27,6 +28,7 @@ public interface WarehouseOwnerRepository
       """
       SELECT o FROM WarehouseOwner o
       JOIN FETCH o.user
+      LEFT JOIN FETCH o.approvedBy
       WHERE o.id = :id AND o.deletedAt IS NULL
       """)
   Optional<WarehouseOwner> findActiveById(UUID id);

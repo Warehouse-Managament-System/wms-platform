@@ -15,7 +15,6 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
   liquibase:
     drop-first: true # TODO: set to false before production
@@ -41,17 +40,19 @@ spring:
           timeout: 5000
           writetimeout: 5000
 
+wms:
+  production: ${WMS_PRODUCTION:false}
+
 jwt:
-  secret: ${JWT_SECRET}
+  secret: ${JWT_SECRET:${JWT_SECRET_DEV:dev-only-secret-key-min-32-chars!!}}
   access-exp: 900000
   refresh-exp: 604800000
 
-wms:
-  super-admin:
-    email: ${SUPER_ADMIN_EMAIL:}
-    password: ${SUPER_ADMIN_PASSWORD:}
-    first-name: ${SUPER_ADMIN_FIRST_NAME:Super}
-    last-name: ${SUPER_ADMIN_LAST_NAME:Admin}
+super-admin:
+  email: ${SUPER_ADMIN_EMAIL:${SUPER_ADMIN_EMAIL_DEV:admin@wms.com}}
+  password: ${SUPER_ADMIN_PASSWORD:${SUPER_ADMIN_PASSWORD_DEV:Admin@123456}}
+  first-name: ${SUPER_ADMIN_FIRST_NAME:Super}
+  last-name: ${SUPER_ADMIN_LAST_NAME:Admin}
 
 app:
   base-url: http://localhost:8080
