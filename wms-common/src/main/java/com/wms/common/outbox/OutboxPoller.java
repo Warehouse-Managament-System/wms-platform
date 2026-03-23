@@ -8,16 +8,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component
 @RequiredArgsConstructor
 @Slf4j
 public class OutboxPoller {
 
   private final OutboxEventRepository outboxEventRepository;
-  private final KafkaTemplate<String, String> kafkaTemplate;
+  private final KafkaTemplate<Object, Object> kafkaTemplate;
 
   @Scheduled(fixedDelayString = "${wms.outbox.poll-interval-ms:1000}")
   @Transactional
@@ -30,7 +28,7 @@ public class OutboxPoller {
         String topic = event.getAggregateType() + "." + event.getEventType();
         kafkaTemplate.send(topic, event.getAggregateId().toString(), event.getPayload());
 
-        event.setStatus(OutboxStatus.PUBLISHED);
+        event.setStatus(OutboxStatus.SENT);
         event.setPublishedAt(Instant.now());
         outboxEventRepository.save(event);
 
@@ -38,6 +36,7 @@ public class OutboxPoller {
             "Outbox event published: topic={}, aggregateId={}", topic, event.getAggregateId());
       } catch (Exception e) {
         log.error("Failed to publish outbox event: id={}", event.getId(), e);
+
         event.setStatus(OutboxStatus.FAILED);
         outboxEventRepository.save(event);
       }

@@ -11,14 +11,19 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.util.HtmlUtils;
 
 @RestControllerAdvice
 @Order(1)
 public class AuthExceptionHandler {
 
+  private static String sanitize(String input) {
+    if (input == null) return null;
+    return HtmlUtils.htmlEscape(input);
+  }
+
   @ExceptionHandler(DisabledException.class)
-  public ResponseEntity<CommonErrorResponse> handleDisabled(
-      DisabledException ex, HttpServletRequest request) {
+  public ResponseEntity<CommonErrorResponse> handleDisabled(HttpServletRequest request) {
     return ResponseEntity.status(HttpStatus.FORBIDDEN)
         .body(
             new CommonErrorResponse(
@@ -30,8 +35,7 @@ public class AuthExceptionHandler {
   }
 
   @ExceptionHandler(BadCredentialsException.class)
-  public ResponseEntity<CommonErrorResponse> handleBadCredentials(
-      BadCredentialsException ex, HttpServletRequest request) {
+  public ResponseEntity<CommonErrorResponse> handleBadCredentials(HttpServletRequest request) {
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
         .body(
             new CommonErrorResponse(
@@ -43,8 +47,8 @@ public class AuthExceptionHandler {
   }
 
   @ExceptionHandler(AuthenticationException.class)
-  public ResponseEntity<CommonErrorResponse> handleAuth(
-      AuthenticationException ex, HttpServletRequest request) {
+  public ResponseEntity<CommonErrorResponse> handleAuth(HttpServletRequest request) {
+
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
         .body(
             new CommonErrorResponse(
@@ -53,17 +57,5 @@ public class AuthExceptionHandler {
                 "AUTHENTICATION_FAILED",
                 "Authentication failed.",
                 sanitize(request.getRequestURI())));
-  }
-
-  private static String sanitize(String input) {
-    if (input == null) {
-      return null;
-    }
-    return input
-        .replace("&", "&amp;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
-        .replace("\"", "&quot;")
-        .replace("'", "&#x27;");
   }
 }

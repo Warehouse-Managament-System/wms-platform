@@ -80,7 +80,7 @@ public class StaffService {
       Instant createdTo,
       Pageable pageable) {
 
-    Specification<Staff> spec = Specification.where((Specification<Staff>) null);
+    Specification<Staff> spec = (root, query, cb) -> cb.conjunction();
 
     if (search != null && !search.isBlank()) {
       spec = spec.and(StaffSpecification.searchByName(search));

@@ -9,7 +9,6 @@ import lombok.*;
 @Entity
 @Table(
     name = "users",
-    uniqueConstraints = {@UniqueConstraint(name = "uk_users_email", columnNames = "email")},
     check = {
       @CheckConstraint(
           name = "ck_users_first_name",

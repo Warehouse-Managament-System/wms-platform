@@ -89,7 +89,7 @@ public class DeliveryAgentService {
       Instant createdTo,
       Pageable pageable) {
 
-    Specification<DeliveryAgent> spec = Specification.where((Specification<DeliveryAgent>) null);
+    Specification<DeliveryAgent> spec = (root, query, cb) -> cb.conjunction();
 
     if (search != null && !search.isBlank()) {
       spec = spec.and(DeliveryAgentSpecification.searchByName(search));
@@ -133,6 +133,7 @@ public class DeliveryAgentService {
         throw new ResourceConflictException(
             "Delivery agent profile already exists with tax ID: " + request.taxId());
       }
+
       agent.setTaxId(request.taxId());
     }
 

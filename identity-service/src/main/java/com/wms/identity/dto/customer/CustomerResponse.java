@@ -16,6 +16,9 @@ public record CustomerResponse(
     UserStatus status,
     String companyName,
     String taxId,
+    String address,
+    String city,
+    String country,
     String contactPersonName,
     Instant createdAt,
     Instant updatedAt) {
@@ -32,6 +35,9 @@ public record CustomerResponse(
         user.getStatus(),
         customer.getCompanyName(),
         customer.getTaxId(),
+        customer.getAddress(),
+        customer.getCity(),
+        customer.getCountry(),
         customer.getContactPersonName(),
         customer.getCreatedAt(),
         customer.getUpdatedAt());

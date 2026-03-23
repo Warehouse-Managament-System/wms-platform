@@ -47,6 +47,7 @@ public class AuthService {
     if (userRepository.existsByEmailAndDeletedAtIsNull(request.email())) {
       throw new ResourceConflictException("Email already registered");
     }
+
     if (warehouseOwnerRepository.existsByTaxIdAndDeletedAtIsNull(request.taxId())) {
       throw new ResourceConflictException("Tax ID already in use");
     }
@@ -59,6 +60,7 @@ public class AuthService {
             request.lastName(),
             UserRole.WAREHOUSE_OWNER,
             UserStatus.PENDING_APPROVAL);
+
     userRepository.save(user);
 
     WarehouseOwner owner =
@@ -70,6 +72,7 @@ public class AuthService {
             .city(request.city())
             .country(request.country())
             .build();
+
     warehouseOwnerRepository.save(owner);
   }
 
@@ -78,6 +81,7 @@ public class AuthService {
     if (userRepository.existsByEmailAndDeletedAtIsNull(request.email())) {
       throw new ResourceConflictException("Email already registered");
     }
+
     if (customerProfileRepository.existsByTaxId(request.taxId())) {
       throw new ResourceConflictException("Tax ID already in use");
     }
@@ -90,6 +94,7 @@ public class AuthService {
             request.lastName(),
             UserRole.CUSTOMER,
             UserStatus.ACTIVE);
+
     userRepository.save(user);
 
     Customer customer =
@@ -97,8 +102,12 @@ public class AuthService {
             .user(user)
             .companyName(request.companyName())
             .taxId(request.taxId())
+            .address(request.address())
+            .city(request.city())
+            .country(request.country())
             .contactPersonName(request.contactPersonName())
             .build();
+
     customerProfileRepository.save(customer);
   }
 
@@ -110,6 +119,8 @@ public class AuthService {
 
     UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
+    assert userDetails != null;
+
     User user =
         userRepository
             .findByEmailAndDeletedAtIsNull(userDetails.getUsername())
@@ -119,6 +130,7 @@ public class AuthService {
 
     String accessToken =
         jwtService.generateToken(user.getId(), user.getEmail(), user.getRole().name());
+
     RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
     return new AuthResponse(accessToken, refreshToken.getToken());
@@ -137,6 +149,7 @@ public class AuthService {
     }
 
     User user = refreshToken.getUser();
+
     String newAccessToken =
         jwtService.generateToken(user.getId(), user.getEmail(), user.getRole().name());
 

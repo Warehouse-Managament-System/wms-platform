@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
       id: 2026-03-04-create-customer-profiles-table
-      author: gulay
+      author: Gulay
       changes:
         - createTable:
             tableName: customer_profiles
@@ -33,6 +33,21 @@ databaseChangeLog:
                     nullable: false
                     unique: true
                     uniqueConstraintName: uk_customer_profiles_tax_id
+              - column:
+                  name: address
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: city
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: country
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
               - column:
                   name: contact_person_name
                   type: VARCHAR(60)
@@ -66,6 +81,18 @@ databaseChangeLog:
               ALTER TABLE customer_profiles
                 ADD CONSTRAINT ck_customer_profiles_tax_id
                 CHECK (tax_id ~* '^[A-Za-z0-9-]{5,16}$');
+
+              ALTER TABLE customer_profiles
+                ADD CONSTRAINT ck_customer_profiles_address
+                CHECK (LENGTH(address) BETWEEN 5 AND 255);
+
+              ALTER TABLE customer_profiles
+                ADD CONSTRAINT ck_customer_profiles_city
+                CHECK (LENGTH(city) BETWEEN 2 AND 100);
+
+              ALTER TABLE customer_profiles
+                ADD CONSTRAINT ck_customer_profiles_country
+                CHECK (LENGTH(country) BETWEEN 2 AND 100);
 
               ALTER TABLE customer_profiles
                 ADD CONSTRAINT ck_customer_profiles_contact_person_name

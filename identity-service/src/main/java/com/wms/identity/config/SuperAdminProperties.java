@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Getter
 @Setter
-@ConfigurationProperties(prefix = "wms.super-admin")
+@ConfigurationProperties(prefix = "super-admin")
 public class SuperAdminProperties {
 
   private String email;
