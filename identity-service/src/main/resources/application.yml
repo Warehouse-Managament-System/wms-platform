@@ -13,10 +13,7 @@ spring:
     driver-class-name: org.postgresql.Driver
 jwt:
   secret: mysecretkeymysecretkeymysecretkeymysecretkey
-  access-exp: 360_000
-  refresh-exp: 420_000
-
-
+  access-exp: 360000
 
   jpa:
     hibernate:

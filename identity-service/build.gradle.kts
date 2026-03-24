@@ -6,4 +6,5 @@ dependencies {
     runtimeOnly(libs.jjwt.jackson)
     testImplementation(libs.spring.security.test)
     implementation("org.springframework.boot:spring-boot-starter-liquibase")
+
 }
