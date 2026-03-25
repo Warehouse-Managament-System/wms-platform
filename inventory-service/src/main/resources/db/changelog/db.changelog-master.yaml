@@ -10,25 +10,78 @@ databaseChangeLog:
       id: create-outbox-events-table
       author: Ali Ramazanov
       changes:
+        - createTable:
+            tableName: outbox_events
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_outbox_events
+                    nullable: false
+              - column:
+                  name: aggregate_type
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: aggregate_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: event_type
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: payload
+                  type: JSONB
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  defaultValue: PENDING
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: published_at
+                  type: TIMESTAMPTZ
         - sql:
             sql: |
-              CREATE TABLE IF NOT EXISTS outbox_events (
-                  id             UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-                  aggregate_type VARCHAR(100) NOT NULL,
-                  aggregate_id   UUID         NOT NULL,
-                  event_type     VARCHAR(100) NOT NULL,
-                  payload        JSONB        NOT NULL,
-                  status         VARCHAR(20)  NOT NULL DEFAULT 'PENDING'
-                                     CHECK (status IN ('PENDING', 'SENT', 'FAILED')),
-                  created_at     TIMESTAMPTZ  NOT NULL DEFAULT now(),
-                  updated_at     TIMESTAMPTZ  NOT NULL DEFAULT now(),
-                  published_at   TIMESTAMPTZ
-              );
+              ALTER TABLE outbox_events
+                ADD CONSTRAINT ck_outbox_events_status
+                CHECK (status IN ('PENDING', 'SENT', 'FAILED'));
 
-              CREATE INDEX IF NOT EXISTS idx_outbox_pending
-                  ON outbox_events(status) WHERE status = 'PENDING';
+              CREATE INDEX idx_outbox_pending
+                ON outbox_events(status) WHERE status = 'PENDING';
+        - createIndex:
+            indexName: idx_outbox_events_created_at
+            tableName: outbox_events
+            columns:
+              - column:
+                  name: created_at
 
-              CREATE INDEX IF NOT EXISTS idx_outbox_events_created_at
-                  ON outbox_events(created_at);
+  # Warehouse tables
   - include:
       file: db/changelog/warehouse/2026-03-09-create-warehouse-table.yaml
+  - include:
+      file: db/changelog/warehouse/2026-03-22-create-warehouse-images-table.yaml
+  - include:
+      file: db/changelog/warehouse/2026-03-22-create-warehouse-excel-imports-table.yaml
+

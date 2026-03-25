@@ -1,0 +1,56 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-03-22-create-warehouse-images-table
+      author: Ali Ramazanov
+      changes:
+        - createTable:
+            tableName: warehouse_images
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_warehouse_images
+                    nullable: false
+              - column:
+                  name: warehouse_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: url
+                  type: VARCHAR(500)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_primary
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            constraintName: fk_warehouse_images_warehouses
+            baseTableName: warehouse_images
+            baseColumnNames: warehouse_id
+            referencedTableName: warehouses
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - sql:
+            sql: |
+              CREATE UNIQUE INDEX idx_warehouse_images_one_primary
+                ON warehouse_images (warehouse_id)
+                WHERE is_primary = true;

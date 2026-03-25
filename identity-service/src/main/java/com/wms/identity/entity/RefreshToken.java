@@ -1,27 +1,37 @@
 package com.wms.identity.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
+import java.time.Instant;
+import java.util.UUID;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.Instant;
-
 @Entity
+@Table(
+    name = "refresh_tokens",
+    uniqueConstraints = {
+      @UniqueConstraint(name = "uk_refresh_tokens_token", columnNames = "token")
+    })
 @Getter
 @Setter
+@NoArgsConstructor
 public class RefreshToken {
-    @Id
-    @GeneratedValue
-    private Long id;
 
-    private String token;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
-    private Instant expiryDate;
+  @Column(nullable = false)
+  private String token;
 
-    @ManyToOne
-    private User user;
+  @Column(name = "expiry_date", nullable = false)
+  private Instant expiryDate;
 
+  @ManyToOne
+  @JoinColumn(
+      name = "user_id",
+      nullable = false,
+      foreignKey = @ForeignKey(name = "fk_refresh_tokens_users_user_id"))
+  private User user;
 }

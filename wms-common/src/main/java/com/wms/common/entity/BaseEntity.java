@@ -20,7 +20,6 @@ public abstract class BaseEntity {
 
   private Instant updatedAt;
 
-
   @PrePersist
   protected void onCreate() {
     createdAt = Instant.now();

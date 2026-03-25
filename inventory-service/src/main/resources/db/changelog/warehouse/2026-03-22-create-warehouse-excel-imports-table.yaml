@@ -1,0 +1,90 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-03-22-create-warehouse-excel-imports-table
+      author: Ali Ramazanov
+      changes:
+        - createTable:
+            tableName: warehouse_excel_imports
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_warehouse_excel_imports
+                    nullable: false
+              - column:
+                  name: warehouse_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: owner_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: file_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: total_rows
+                  type: INT
+                  defaultValueNumeric: "0"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: success_rows
+                  type: INT
+                  defaultValueNumeric: "0"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: failed_rows
+                  type: INT
+                  defaultValueNumeric: "0"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: error_file_url
+                  type: VARCHAR(500)
+                  defaultValue: ""
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            constraintName: fk_warehouse_excel_imports_warehouses
+            baseTableName: warehouse_excel_imports
+            baseColumnNames: warehouse_id
+            referencedTableName: warehouses
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - sql:
+            sql: |
+              ALTER TABLE warehouse_excel_imports
+                ADD CONSTRAINT ck_warehouse_excel_imports_status
+                CHECK (status IN ('PENDING','PROCESSING','COMPLETED','FAILED'));
+
+              ALTER TABLE warehouse_excel_imports
+                ADD CONSTRAINT ck_warehouse_excel_imports_total_rows
+                CHECK (total_rows >= 0);
+
+              ALTER TABLE warehouse_excel_imports
+                ADD CONSTRAINT ck_warehouse_excel_imports_success_rows
+                CHECK (success_rows >= 0);
+
+              ALTER TABLE warehouse_excel_imports
+                ADD CONSTRAINT ck_warehouse_excel_imports_failed_rows
+                CHECK (failed_rows >= 0);

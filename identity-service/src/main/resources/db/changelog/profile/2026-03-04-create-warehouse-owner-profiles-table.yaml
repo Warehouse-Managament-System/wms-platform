@@ -19,8 +19,6 @@ databaseChangeLog:
                   type: UUID
                   constraints:
                     nullable: false
-                    unique: true
-                    uniqueConstraintName: uk_warehouse_owner_profiles_user_id
               - column:
                   name: company_name
                   type: VARCHAR(100)
@@ -31,8 +29,6 @@ databaseChangeLog:
                   type: VARCHAR(16)
                   constraints:
                     nullable: false
-                    unique: true
-                    uniqueConstraintName: uk_warehouse_owner_profiles_tax_id
               - column:
                   name: address
                   type: VARCHAR(255)
@@ -88,6 +84,15 @@ databaseChangeLog:
             onDelete: SET NULL
         - sql:
             sql: |
+              -- Partial unique index for tax_id
+              CREATE UNIQUE INDEX uk_warehouse_owner_profiles_tax_id_partial
+              ON warehouse_owner_profiles(tax_id)
+              WHERE deleted_at IS NULL;
+
+              -- Partial unique index for user_id (soft delete üçün)
+              CREATE UNIQUE INDEX uk_warehouse_owner_profiles_user_id_partial
+              ON warehouse_owner_profiles(user_id)
+              WHERE deleted_at IS NULL;
               ALTER TABLE warehouse_owner_profiles
                 ADD CONSTRAINT ck_warehouse_owner_profiles_company_name
                 CHECK (LENGTH(company_name) BETWEEN 2 AND 100);

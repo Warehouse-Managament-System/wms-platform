@@ -19,6 +19,7 @@ databaseChangeLog:
                   defaultValueComputed: gen_random_uuid()
                   constraints:
                     primaryKey: true
+                    primaryKeyName: pk_outbox_events
                     nullable: false
               - column:
                   name: aggregate_type

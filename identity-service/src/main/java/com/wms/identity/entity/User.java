@@ -1,6 +1,6 @@
 package com.wms.identity.entity;
 
-import com.wms.common.entity.BaseEntity;
+import com.wms.common.entity.SoftDeleteEntity;
 import com.wms.common.enums.UserRole;
 import com.wms.common.enums.UserStatus;
 import jakarta.persistence.*;
@@ -9,7 +9,6 @@ import lombok.*;
 @Entity
 @Table(
     name = "users",
-    uniqueConstraints = {@UniqueConstraint(name = "uk_users_email", columnNames = "email")},
     check = {
       @CheckConstraint(
           name = "ck_users_first_name",
@@ -27,7 +26,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User extends BaseEntity {
+public class User extends SoftDeleteEntity {
 
   @Column(nullable = false)
   private String email;

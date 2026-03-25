@@ -51,7 +51,7 @@ All commits must follow [Conventional Commits](https://www.conventionalcommits.o
 | Part          | Allowed Values                                                                              |
 |---------------|---------------------------------------------------------------------------------------------|
 | **type**      | `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`, `ci`, `style`, `build`, `revert` |
-| **scope**     | `identity`, `inventory`, `reservation`, `delivery`, `platform`, `gateway`, `common`, `infra`  |
+| **scope**     | `identity`, `inventory`, `reservation`, `delivery`, `platform`, `gateway`, `common`, `infra`, `all` |
 
 **Rules:**
 - Description starts with a **lowercase** letter
