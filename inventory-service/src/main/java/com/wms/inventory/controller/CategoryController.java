@@ -52,7 +52,7 @@ public class CategoryController {
             : Sort.by(sortBy).descending();
 
         PageRequest pageable = PageRequest.of(page , size, sort);
-        return ResponseEntity.ok(categoryService.search(search, (Pageable) pageable));
+        return ResponseEntity.ok(categoryService.search(search, pageable));
     }
 
 }

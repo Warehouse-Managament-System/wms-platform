@@ -1,0 +1,50 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-03-09-create-warehouse-table
+      author: Anar Arabli
+      changes:
+        - createTable:
+            tableName: zone_categories
+            columns:
+
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: zone_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: category_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+
+        - addForeignKeyConstraint:
+            baseTableName: zone_categories
+            baseColumnNames: zone_id
+            referencedTableName: zones
+            referencedColumnNames: id
+            constraintName: fk_zone_categories_zone
+
+
+        - addForeignKeyConstraint:
+            baseTableName: zone_categories
+            baseColumnNames: category_id
+            referencedTableName: categories
+            referencedColumnNames: id
+            constraintName: fk_zone_categories_category

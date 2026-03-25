@@ -37,7 +37,6 @@ public class Category {
     @Column(nullable = false,length = 255)
     String description;
     @Column(name = "created_at",updatable = false)
-    @Temporal(TemporalType.TIMESTAMP)
     Instant createdAt;
 
     @PrePersist

@@ -7,6 +7,7 @@ import com.wms.common.exception.BusinessRuleException;
 import com.wms.common.exception.EntityNotFoundException;
 import com.wms.common.exception.ResourceConflictException;
 import com.wms.inventory.dto.zone.CreateZoneRequest;
+import com.wms.inventory.dto.zone.UpdateZoneRequest;
 import com.wms.inventory.dto.zone.ZoneAvailabilityRequest;
 import com.wms.inventory.dto.zone.ZoneAvailabilityResponse;
 import com.wms.inventory.dto.zone.ZoneResponse;
@@ -76,7 +77,7 @@ public class ZoneService {
     }
 
     @Transactional
-    public void addCategory(UUID zoneId, UUID categoryId) {
+    public void addCategory(UUID id, UUID zoneId, UUID categoryId) {
         Zone zone = zoneRepository.findById(zoneId)
             .orElseThrow(() -> new EntityNotFoundException("Zone", zoneId));
 
@@ -116,5 +117,24 @@ public class ZoneService {
             .build();
 
         return ZoneAvailabilityResponse.from(zoneAvailabilityRepository.save(availability));
+    }
+
+    @Transactional
+    public ZoneResponse update(UUID zoneId, UUID ownerId, UpdateZoneRequest request) {
+        Zone zone = zoneRepository.findById(zoneId)
+            .orElseThrow(() -> new EntityNotFoundException("Zone", zoneId));
+
+        if (!zone.getWarehouse().getOwnerId().equals(ownerId)) {
+            throw new BusinessRuleException("You do not own this zone");
+        }
+
+        if (request.name() != null) zone.setName(request.name());
+        if (request.description() != null) zone.setDescription(request.description());
+        if (request.temperatureType() != null) zone.setTemperatureType(request.temperatureType());
+        if (request.totalSurfaceArea() != null) zone.setTotalSurfaceArea(request.totalSurfaceArea());
+        if (request.discountPercentage() != null) zone.setDiscountPercentage(request.discountPercentage());
+        if (request.status() != null) zone.setStatus(request.status());
+
+        return ZoneResponse.from(zoneRepository.save(zone));
     }
 }

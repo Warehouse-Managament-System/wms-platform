@@ -18,7 +18,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import lombok.experimental.SuperBuilder;
+
 
 import java.math.BigDecimal;
 
@@ -28,7 +28,7 @@ import java.math.BigDecimal;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
+@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Zone extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
