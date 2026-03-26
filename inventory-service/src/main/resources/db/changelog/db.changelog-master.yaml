@@ -96,3 +96,9 @@ databaseChangeLog:
       file: db/changelog/zone/2026-03-25-create-zone-categories-table.yaml
   - include:
       file: db/changelog/zone/2026-03-25-create-zone-availabilities-table.yaml
+  # Room tables
+  - include:
+      file: db/changelog/room/2026-03-27-create-rooms-table.yaml
+  - include:
+      file: db/changelog/room/2026-03-27-add-room-check-constraints.yaml
+

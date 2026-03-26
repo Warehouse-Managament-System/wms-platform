@@ -1,0 +1,145 @@
+{
+  "info": {
+    "name": "Warehouse Management API",
+    "_postman_id": "9f7b3c2d-4567-890a-bcde-1234567890ab",
+    "description": "Full CRUD & Publish API for Warehouses, Zones, and Rooms",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Warehouse - Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Central Warehouse\",\n  \"description\": \"Main storage\",\n  \"address\": \"123 Main St\",\n  \"city\": \"Baku\",\n  \"country\": \"Azerbaijan\",\n  \"latitude\": 40.4093,\n  \"longitude\": 49.8671,\n  \"totalSurfaceArea\": 1000,\n  \"discountPercentage\": 5\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/v1/owner/warehouses", "host": ["{{baseUrl}}"], "path": ["api","v1","owner","warehouses"] }
+      }
+    },
+    {
+      "name": "Warehouse - List Own",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "{{baseUrl}}/api/v1/owner/warehouses", "host": ["{{baseUrl}}"], "path": ["api","v1","owner","warehouses"] }
+      }
+    },
+    {
+      "name": "Warehouse - Get By ID",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "{{baseUrl}}/api/v1/owner/warehouses/{{warehouseId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","owner","warehouses","{{warehouseId}}"] }
+      }
+    },
+    {
+      "name": "Warehouse - Update",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated Warehouse\",\n  \"city\": \"Ganja\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/v1/owner/warehouses/{{warehouseId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","owner","warehouses","{{warehouseId}}"] }
+      }
+    },
+    {
+      "name": "Warehouse - Publish",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "{{baseUrl}}/api/v1/owner/warehouses/{{warehouseId}}/publish", "host": ["{{baseUrl}}"], "path": ["api","v1","owner","warehouses","{{warehouseId}}","publish"] }
+      }
+    },
+    {
+      "name": "Warehouse Image - Add",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"url\": \"https://example.com/image.jpg\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/v1/owner/warehouses/{{warehouseId}}/images", "host": ["{{baseUrl}}"], "path": ["api","v1","owner","warehouses","{{warehouseId}}","images"] }
+      }
+    },
+    {
+      "name": "Warehouse Image - Delete",
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "{{baseUrl}}/api/v1/owner/warehouses/{{warehouseId}}/images/{{imageId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","owner","warehouses","{{warehouseId}}","images","{{imageId}}"] }
+      }
+    },
+    {
+      "name": "Zone - List by Warehouse",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "{{baseUrl}}/api/v1/warehouses/{{warehouseId}}/zones", "host": ["{{baseUrl}}"], "path": ["api","v1","warehouses","{{warehouseId}}","zones"] }
+      }
+    },
+    {
+      "name": "Room - Get All",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "{{baseUrl}}/api/rooms", "host": ["{{baseUrl}}"], "path": ["api","rooms"] }
+      }
+    },
+    {
+      "name": "Room - Get By ID",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "{{baseUrl}}/api/rooms/{{roomId}}", "host": ["{{baseUrl}}"], "path": ["api","rooms","{{roomId}}"] }
+      }
+    },
+    {
+      "name": "Room - Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"zoneId\": \"{{zoneId}}\",\n  \"name\": \"Room A\",\n  \"totalSurfaceArea\": 50,\n  \"pricePerSqmDaily\": 2,\n  \"pricePerSqmWeekly\": 12,\n  \"pricePerSqmMonthly\": 40,\n  \"status\": \"AVAILABLE\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/rooms", "host": ["{{baseUrl}}"], "path": ["api","rooms"] }
+      }
+    },
+    {
+      "name": "Room - Update",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Room A Updated\",\n  \"status\": \"MAINTENANCE\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/rooms/{{roomId}}", "host": ["{{baseUrl}}"], "path": ["api","rooms","{{roomId}}"] }
+      }
+    },
+    {
+      "name": "Room - Delete",
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "{{baseUrl}}/api/rooms/{{roomId}}", "host": ["{{baseUrl}}"], "path": ["api","rooms","{{roomId}}"] }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "token", "value": "" },
+    { "key": "warehouseId", "value": "" },
+    { "key": "zoneId", "value": "" },
+    { "key": "roomId", "value": "" },
+    { "key": "imageId", "value": "" }
+  ]
+}
