@@ -77,6 +77,7 @@ configure(subprojects.filter { it.name in serviceProjects }) {
     dependencies {
         implementation(platform("org.springframework.cloud:spring-cloud-dependencies:${rootProject.libs.versions.spring.cloud.get()}"))
         implementation(rootProject.libs.spring.boot.starter.actuator)
+        "developmentOnly"(platform(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES))
         "developmentOnly"("org.springframework.boot:spring-boot-devtools")
         testImplementation(rootProject.libs.spring.boot.starter.test)
     }
