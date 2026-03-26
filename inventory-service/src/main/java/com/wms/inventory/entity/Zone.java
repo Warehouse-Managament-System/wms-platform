@@ -11,6 +11,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,9 +19,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-
-
-import java.math.BigDecimal;
 
 @Entity
 @Table(name = "zones")
@@ -31,31 +29,28 @@ import java.math.BigDecimal;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Zone extends BaseEntity {
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "warehouse_id", nullable = false)
-    Warehouse warehouse;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "warehouse_id", nullable = false)
+  Warehouse warehouse;
 
-    @Column(nullable = false, length = 100)
-    private String name;
+  @Column(nullable = false, length = 100)
+  private String name;
 
-    @Column(nullable = false, length = 255)
-    String description;
+  @Column(nullable = false, length = 255)
+  String description;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "temperature_type", nullable = false, length = 20)
-    TemperatureType temperatureType;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "temperature_type", nullable = false, length = 20)
+  TemperatureType temperatureType;
 
-    @Column(name = "total_surface_area", nullable = false, precision = 10, scale = 2)
-    BigDecimal totalSurfaceArea;
+  @Column(name = "total_surface_area", nullable = false, precision = 10, scale = 2)
+  BigDecimal totalSurfaceArea;
 
-    @Builder.Default
-    @Column(name = "discount_percentage", nullable = false)
-    int discountPercentage = 0;
+  @Builder.Default
+  @Column(name = "discount_percentage", nullable = false)
+  int discountPercentage = 0;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    ZoneStatus status;
-
-
-
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 20)
+  ZoneStatus status;
 }
