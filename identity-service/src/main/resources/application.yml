@@ -9,13 +9,6 @@ spring:
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
-<<<<<<< HEAD
-jwt:
-  secret: mysecretkeymysecretkeymysecretkeymysecretkey
-  access-exp: 360000
-
-=======
->>>>>>> efb13724d520a6a98447715a2e2bbd74f5f4a399
   jpa:
     hibernate:
       ddl-auto: validate

@@ -24,7 +24,10 @@
     { "key": "ownerEmail", "value": "owner@test.com", "type": "string" },
     { "key": "customerEmail", "value": "customer@test.com", "type": "string" },
     { "key": "adminEmail", "value": "admin@wms.com", "type": "string" },
-    { "key": "secondOwnerId", "value": "", "type": "string" }
+    { "key": "secondOwnerId", "value": "", "type": "string" },
+    { "key": "categoryId", "value": "", "type": "string" },
+    { "key": "zoneId", "value": "", "type": "string" },
+    { "key": "zoneAvailabilityId", "value": "", "type": "string" }
   ],
   "item": [
     {
@@ -833,7 +836,148 @@
       ]
     },
     {
-      "name": "9. Authorization & Negative Tests",
+      "name": "9. Inventory — Categories & Zones",
+      "item": [
+        {
+          "name": "9.1 Create Category (owner)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-User-Id", "value": "{{ownerUserId}}" }, { "key": "X-User-Role", "value": "WAREHOUSE_OWNER" }, { "key": "X-User-Email", "value": "owner@test.com" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Electronics\",\n  \"description\": \"Electronic devices and components\"\n}" },
+            "url": { "raw": "{{inventoryUrl}}/api/v1/categories", "host": ["{{inventoryUrl}}"], "path": ["api", "v1", "categories"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 201', () => pm.response.to.have.status(201));", "const json = pm.response.json();", "pm.test('Has name', () => pm.expect(json.name).to.eql('Electronics'));", "pm.collectionVariables.set('categoryId', json.id);"] } }]
+        },
+        {
+          "name": "9.2 Create Second Category",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-User-Id", "value": "{{ownerUserId}}" }, { "key": "X-User-Role", "value": "WAREHOUSE_OWNER" }, { "key": "X-User-Email", "value": "owner@test.com" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Perishables\",\n  \"description\": \"Food and temperature-sensitive items\"\n}" },
+            "url": { "raw": "{{inventoryUrl}}/api/v1/categories", "host": ["{{inventoryUrl}}"], "path": ["api", "v1", "categories"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 201', () => pm.response.to.have.status(201));"] } }]
+        },
+        {
+          "name": "9.3 Duplicate Category (409)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-User-Id", "value": "{{ownerUserId}}" }, { "key": "X-User-Role", "value": "WAREHOUSE_OWNER" }, { "key": "X-User-Email", "value": "owner@test.com" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Electronics\",\n  \"description\": \"Duplicate\"\n}" },
+            "url": { "raw": "{{inventoryUrl}}/api/v1/categories", "host": ["{{inventoryUrl}}"], "path": ["api", "v1", "categories"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 409', () => pm.response.to.have.status(409));"] } }]
+        },
+        {
+          "name": "9.4 Get Category by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-User-Id", "value": "{{ownerUserId}}" }, { "key": "X-User-Role", "value": "WAREHOUSE_OWNER" }, { "key": "X-User-Email", "value": "owner@test.com" }],
+            "url": { "raw": "{{inventoryUrl}}/api/v1/categories/{{categoryId}}", "host": ["{{inventoryUrl}}"], "path": ["api", "v1", "categories", "{{categoryId}}"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));", "pm.test('Correct name', () => pm.expect(pm.response.json().name).to.eql('Electronics'));"] } }]
+        },
+        {
+          "name": "9.5 Search Categories",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-User-Id", "value": "{{ownerUserId}}" }, { "key": "X-User-Role", "value": "WAREHOUSE_OWNER" }, { "key": "X-User-Email", "value": "owner@test.com" }],
+            "url": { "raw": "{{inventoryUrl}}/api/v1/categories?search=elec", "host": ["{{inventoryUrl}}"], "path": ["api", "v1", "categories"], "query": [{ "key": "search", "value": "elec" }] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));", "pm.test('Found Electronics', () => pm.expect(pm.response.json().content.length).to.be.greaterThan(0));"] } }]
+        },
+        {
+          "name": "9.6 Create Zone in Warehouse (owner)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-User-Id", "value": "{{ownerUserId}}" }, { "key": "X-User-Role", "value": "WAREHOUSE_OWNER" }, { "key": "X-User-Email", "value": "owner@test.com" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Cold Storage A\",\n  \"description\": \"Refrigerated zone for perishables\",\n  \"temperatureType\": \"REFRIGERATED\",\n  \"totalSurfaceArea\": 1000.00,\n  \"discountPercentage\": 10\n}" },
+            "url": { "raw": "{{inventoryUrl}}/api/v1/owner/warehouses/{{warehouseId}}/zones", "host": ["{{inventoryUrl}}"], "path": ["api", "v1", "owner", "warehouses", "{{warehouseId}}", "zones"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 201', () => pm.response.to.have.status(201));", "const json = pm.response.json();", "pm.test('Status is ACTIVE', () => pm.expect(json.status).to.eql('ACTIVE'));", "pm.test('Discount is 10', () => pm.expect(json.discountPercentage).to.eql(10));", "pm.test('Temp type is REFRIGERATED', () => pm.expect(json.temperatureType).to.eql('REFRIGERATED'));", "pm.collectionVariables.set('zoneId', json.id);"] } }]
+        },
+        {
+          "name": "9.7 Create Second Zone (AMBIENT)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-User-Id", "value": "{{ownerUserId}}" }, { "key": "X-User-Role", "value": "WAREHOUSE_OWNER" }, { "key": "X-User-Email", "value": "owner@test.com" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"General Storage B\",\n  \"description\": \"Ambient temperature zone\",\n  \"temperatureType\": \"AMBIENT\",\n  \"totalSurfaceArea\": 2000.00\n}" },
+            "url": { "raw": "{{inventoryUrl}}/api/v1/owner/warehouses/{{warehouseId}}/zones", "host": ["{{inventoryUrl}}"], "path": ["api", "v1", "owner", "warehouses", "{{warehouseId}}", "zones"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 201', () => pm.response.to.have.status(201));", "pm.test('Discount defaults to 0', () => pm.expect(pm.response.json().discountPercentage).to.eql(0));"] } }]
+        },
+        {
+          "name": "9.8 Update Zone",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-User-Id", "value": "{{ownerUserId}}" }, { "key": "X-User-Role", "value": "WAREHOUSE_OWNER" }, { "key": "X-User-Email", "value": "owner@test.com" }],
+            "body": { "mode": "raw", "raw": "{\n  \"description\": \"Updated cold storage zone\",\n  \"discountPercentage\": 15\n}" },
+            "url": { "raw": "{{inventoryUrl}}/api/v1/owner/zones/{{zoneId}}", "host": ["{{inventoryUrl}}"], "path": ["api", "v1", "owner", "zones", "{{zoneId}}"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));", "pm.test('Discount updated', () => pm.expect(pm.response.json().discountPercentage).to.eql(15));"] } }]
+        },
+        {
+          "name": "9.9 Add Category to Zone",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-User-Id", "value": "{{ownerUserId}}" }, { "key": "X-User-Role", "value": "WAREHOUSE_OWNER" }, { "key": "X-User-Email", "value": "owner@test.com" }],
+            "body": { "mode": "raw", "raw": "{\n  \"categoryId\": \"{{categoryId}}\"\n}" },
+            "url": { "raw": "{{inventoryUrl}}/api/v1/owner/zones/{{zoneId}}/categories", "host": ["{{inventoryUrl}}"], "path": ["api", "v1", "owner", "zones", "{{zoneId}}", "categories"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 201', () => pm.response.to.have.status(201));"] } }]
+        },
+        {
+          "name": "9.10 Duplicate Category Link (409)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-User-Id", "value": "{{ownerUserId}}" }, { "key": "X-User-Role", "value": "WAREHOUSE_OWNER" }, { "key": "X-User-Email", "value": "owner@test.com" }],
+            "body": { "mode": "raw", "raw": "{\n  \"categoryId\": \"{{categoryId}}\"\n}" },
+            "url": { "raw": "{{inventoryUrl}}/api/v1/owner/zones/{{zoneId}}/categories", "host": ["{{inventoryUrl}}"], "path": ["api", "v1", "owner", "zones", "{{zoneId}}", "categories"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 409', () => pm.response.to.have.status(409));"] } }]
+        },
+        {
+          "name": "9.11 Add Zone Availability",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-User-Id", "value": "{{ownerUserId}}" }, { "key": "X-User-Role", "value": "WAREHOUSE_OWNER" }, { "key": "X-User-Email", "value": "owner@test.com" }],
+            "body": { "mode": "raw", "raw": "{\n  \"startDate\": \"2026-04-01\",\n  \"endDate\": \"2026-12-31\"\n}" },
+            "url": { "raw": "{{inventoryUrl}}/api/v1/owner/zones/{{zoneId}}/availabilities", "host": ["{{inventoryUrl}}"], "path": ["api", "v1", "owner", "zones", "{{zoneId}}", "availabilities"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 201', () => pm.response.to.have.status(201));", "const json = pm.response.json();", "pm.test('Has dates', () => { pm.expect(json.startDate).to.eql('2026-04-01'); pm.expect(json.endDate).to.eql('2026-12-31'); });"] } }]
+        },
+        {
+          "name": "9.12 Invalid Availability (end before start)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "X-User-Id", "value": "{{ownerUserId}}" }, { "key": "X-User-Role", "value": "WAREHOUSE_OWNER" }, { "key": "X-User-Email", "value": "owner@test.com" }],
+            "body": { "mode": "raw", "raw": "{\n  \"startDate\": \"2026-12-31\",\n  \"endDate\": \"2026-01-01\"\n}" },
+            "url": { "raw": "{{inventoryUrl}}/api/v1/owner/zones/{{zoneId}}/availabilities", "host": ["{{inventoryUrl}}"], "path": ["api", "v1", "owner", "zones", "{{zoneId}}", "availabilities"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 422', () => pm.response.to.have.status(422));"] } }]
+        },
+        {
+          "name": "9.13 Browse Zones (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{inventoryUrl}}/api/v1/warehouses/{{warehouseId}}/zones", "host": ["{{inventoryUrl}}"], "path": ["api", "v1", "warehouses", "{{warehouseId}}", "zones"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));", "pm.test('Has zones', () => pm.expect(pm.response.json().content.length).to.be.greaterThan(0));"] } }]
+        },
+        {
+          "name": "9.14 Browse Zones with temperature filter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{inventoryUrl}}/api/v1/warehouses/{{warehouseId}}/zones?temperatureType=REFRIGERATED", "host": ["{{inventoryUrl}}"], "path": ["api", "v1", "warehouses", "{{warehouseId}}", "zones"], "query": [{ "key": "temperatureType", "value": "REFRIGERATED" }] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));", "pm.test('Only REFRIGERATED', () => { pm.response.json().content.forEach(z => pm.expect(z.temperatureType).to.eql('REFRIGERATED')); });"] } }]
+        }
+      ]
+    },
+    {
+      "name": "10. Authorization & Negative Tests",
       "item": [
         {
           "name": "9.1 No Token — GET /me (401)",

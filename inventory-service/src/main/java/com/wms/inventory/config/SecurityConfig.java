@@ -38,6 +38,10 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/api/v1/warehouses/**")
                     .permitAll()
+                    .requestMatchers("/api/v1/zones/*/rooms/**")
+                    .permitAll()
+                    .requestMatchers("/api/v1/internal/**")
+                    .permitAll()
                     .anyRequest()
                     .authenticated())
         .sessionManagement(

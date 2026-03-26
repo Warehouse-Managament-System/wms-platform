@@ -5,6 +5,8 @@ import com.wms.inventory.dto.category.CategoryResponse;
 import com.wms.inventory.dto.category.CreateCategoryRequest;
 import com.wms.inventory.service.CategoryService;
 import jakarta.validation.Valid;
+import java.util.Set;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -18,41 +20,40 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.awt.print.Pageable;
-import java.util.Set;
-import java.util.UUID;
-
 @RestController
-@RequestMapping ("/api/v1/categories")
+@RequestMapping("/api/v1/categories")
 @RequiredArgsConstructor
 public class CategoryController {
-    private final CategoryService  categoryService;
-    private static final Set<String> ALLOWED_SORT_FIELD =Set.of("createdAt", "name");
+  private final CategoryService categoryService;
+  private static final Set<String> ALLOWED_SORT_FIELD = Set.of("createdAt", "name");
 
-    @PostMapping
-    public ResponseEntity<CategoryResponse> createCategory(@Valid @RequestBody CreateCategoryRequest request){
-        return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.create(request));
+  @PostMapping
+  public ResponseEntity<CategoryResponse> createCategory(
+      @Valid @RequestBody CreateCategoryRequest request) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.create(request));
+  }
+
+  @GetMapping("/{id}")
+  public ResponseEntity<CategoryResponse> getById(@PathVariable UUID id) {
+    return ResponseEntity.ok(categoryService.getById(id));
+  }
+
+  @GetMapping
+  public ResponseEntity<PageResponse<CategoryResponse>> search(
+      @RequestParam(required = false) String search,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "20") int size,
+      @RequestParam(defaultValue = "createdAt") String sortBy,
+      @RequestParam(defaultValue = "desc") String sortDirection) {
+    if (!ALLOWED_SORT_FIELD.contains(sortBy)) {
+      sortBy = "createdAt";
     }
-    @GetMapping("/{id}")
-    public ResponseEntity<CategoryResponse> getById(@PathVariable UUID id){
-        return ResponseEntity.ok(categoryService.getById(id));
-    }
-    @GetMapping
-    public ResponseEntity<PageResponse<CategoryResponse>> search(
-        @RequestParam(required = false) String search ,
-        @RequestParam(defaultValue = "0") int page ,
-        @RequestParam(defaultValue = "20") int size ,
-        @RequestParam(defaultValue = "createdAt") String sortBy,
-        @RequestParam(defaultValue = "desc")  String sortDirection){
-        if (!ALLOWED_SORT_FIELD.contains(sortBy)){
-            sortBy = "createdAt";
-        }
-        Sort sort = sortDirection.equalsIgnoreCase("asc")
+    Sort sort =
+        sortDirection.equalsIgnoreCase("asc")
             ? Sort.by(sortBy).ascending()
             : Sort.by(sortBy).descending();
 
-        PageRequest pageable = PageRequest.of(page , size, sort);
-        return ResponseEntity.ok(categoryService.search(search, pageable));
-    }
-
+    PageRequest pageable = PageRequest.of(page, Math.min(size, 100), sort);
+    return ResponseEntity.ok(categoryService.search(search, pageable));
+  }
 }
