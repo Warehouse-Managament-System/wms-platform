@@ -10,15 +10,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.Instant;
-import java.time.LocalDate;
-import java.util.UUID;
 
 @Entity
 @Table(name = "zone_availabilities")
@@ -28,24 +27,25 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class ZoneAvailability {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "zone_id", nullable = false)
-    private Zone zone;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
-    @Column(name = "start_date", nullable = false)
-    private LocalDate startDate;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "zone_id", nullable = false)
+  private Zone zone;
 
-    @Column(name = "end_date", nullable = false)
-    private LocalDate endDate;
+  @Column(name = "start_date", nullable = false)
+  private LocalDate startDate;
 
-    @Column(name = "created_at", updatable = false)
-    private Instant createdAt;
+  @Column(name = "end_date", nullable = false)
+  private LocalDate endDate;
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = Instant.now();
-    }
+  @Column(name = "created_at", updatable = false)
+  private Instant createdAt;
+
+  @PrePersist
+  protected void onCreate() {
+    this.createdAt = Instant.now();
+  }
 }
