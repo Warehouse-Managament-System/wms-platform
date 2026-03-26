@@ -1,0 +1,50 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-03-25-create-zone-categories-table
+      author: Anar Arabli
+      changes:
+        - createTable:
+            tableName: zone_categories
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_zone_categories
+                    nullable: false
+              - column:
+                  name: zone_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: category_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            constraintName: fk_zone_categories_zones
+            baseTableName: zone_categories
+            baseColumnNames: zone_id
+            referencedTableName: zones
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            constraintName: fk_zone_categories_categories
+            baseTableName: zone_categories
+            baseColumnNames: category_id
+            referencedTableName: categories
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - addUniqueConstraint:
+            constraintName: uk_zone_categories_zone_category
+            tableName: zone_categories
+            columnNames: zone_id, category_id

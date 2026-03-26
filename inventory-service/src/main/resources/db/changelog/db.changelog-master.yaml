@@ -85,3 +85,14 @@ databaseChangeLog:
   - include:
       file: db/changelog/warehouse/2026-03-22-create-warehouse-excel-imports-table.yaml
 
+  # Category tables
+  - include:
+      file: db/changelog/category/2026-03-25-create-categories-table.yaml
+
+  # Zone tables
+  - include:
+      file: db/changelog/zone/2026-03-25-create-zones-table.yaml
+  - include:
+      file: db/changelog/zone/2026-03-25-create-zone-categories-table.yaml
+  - include:
+      file: db/changelog/zone/2026-03-25-create-zone-availabilities-table.yaml

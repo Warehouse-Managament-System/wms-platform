@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 2026-03-09-create-warehouse-table
+      id: 2026-03-25-create-categories-table
       author: Anar Arabli
       changes:
         - createTable:
@@ -12,23 +12,23 @@ databaseChangeLog:
                   defaultValueComputed: gen_random_uuid()
                   constraints:
                     primaryKey: true
+                    primaryKeyName: pk_categories
                     nullable: false
-
               - column:
                   name: name
                   type: VARCHAR(100)
                   constraints:
                     nullable: false
                     unique: true
-
+                    uniqueConstraintName: uk_categories_name
               - column:
                   name: description
                   type: VARCHAR(255)
                   constraints:
                     nullable: false
-
               - column:
                   name: created_at
-                  type: TIMESTAMP WITH TIME ZONE
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
                   constraints:
                     nullable: false

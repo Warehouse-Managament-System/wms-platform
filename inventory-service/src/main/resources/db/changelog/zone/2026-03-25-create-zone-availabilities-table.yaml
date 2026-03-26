@@ -1,50 +1,49 @@
 databaseChangeLog:
   - changeSet:
-      id: 2026-03-09-create-warehouse-table
+      id: 2026-03-25-create-zone-availabilities-table
       author: Anar Arabli
       changes:
         - createTable:
-            tableName: zone_categories
+            tableName: zone_availabilities
             columns:
-
               - column:
                   name: id
                   type: UUID
                   defaultValueComputed: gen_random_uuid()
                   constraints:
                     primaryKey: true
+                    primaryKeyName: pk_zone_availabilities
                     nullable: false
-
               - column:
                   name: zone_id
                   type: UUID
                   constraints:
                     nullable: false
-
               - column:
-                  name: category_id
-                  type: UUID
+                  name: start_date
+                  type: DATE
                   constraints:
                     nullable: false
-
+              - column:
+                  name: end_date
+                  type: DATE
+                  constraints:
+                    nullable: false
               - column:
                   name: created_at
-                  type: TIMESTAMP WITH TIME ZONE
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
                   constraints:
                     nullable: false
-
-
         - addForeignKeyConstraint:
-            baseTableName: zone_categories
+            constraintName: fk_zone_availabilities_zones
+            baseTableName: zone_availabilities
             baseColumnNames: zone_id
             referencedTableName: zones
             referencedColumnNames: id
-            constraintName: fk_zone_categories_zone
-
-
-        - addForeignKeyConstraint:
-            baseTableName: zone_categories
-            baseColumnNames: category_id
-            referencedTableName: categories
-            referencedColumnNames: id
-            constraintName: fk_zone_categories_category
+            onDelete: CASCADE
+        - sql:
+            sql: |
+              ALTER TABLE zone_availabilities
+                ADD CONSTRAINT chk_zone_availability_dates
+                CHECK (end_date > start_date);
