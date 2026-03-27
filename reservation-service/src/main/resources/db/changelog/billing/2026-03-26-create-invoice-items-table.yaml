@@ -1,0 +1,53 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-03-26-create-invoice-items-table
+      author: Ali Ramazanov
+      changes:
+        - createTable:
+            tableName: invoice_items
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_invoice_items
+                    nullable: false
+              - column:
+                  name: invoice_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: quantity
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: unit_price
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: total
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: invoice_items
+            baseColumnNames: invoice_id
+            referencedTableName: invoices
+            referencedColumnNames: id
+            constraintName: fk_invoice_items_invoice_id

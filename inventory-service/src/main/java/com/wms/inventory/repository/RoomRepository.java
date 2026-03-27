@@ -2,16 +2,16 @@ package com.wms.inventory.repository;
 
 import com.wms.inventory.entity.Room;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-@Repository
-public interface RoomRepository extends JpaRepository<Room, UUID> {
+public interface RoomRepository extends JpaRepository<Room, UUID>, JpaSpecificationExecutor<Room> {
 
-  // Fetch all rooms that are not soft-deleted
-  List<Room> findByDeletedAtIsNull();
+  List<Room> findByZoneIdAndDeletedAtIsNull(UUID zoneId);
 
-  // Optional: find by id excluding soft-deleted
-  Room findByIdAndDeletedAtIsNull(UUID id);
+  Optional<Room> findByIdAndDeletedAtIsNull(UUID id);
+
+  long countByZoneId(UUID zoneId);
 }

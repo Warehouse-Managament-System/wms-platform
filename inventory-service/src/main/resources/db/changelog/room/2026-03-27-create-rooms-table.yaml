@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
       id: 2026-03-27-create-rooms-table
-      author: gulay
+      author: Gulay
       changes:
         - createTable:
             tableName: rooms
@@ -9,18 +9,23 @@ databaseChangeLog:
               - column:
                   name: id
                   type: UUID
+                  defaultValueComputed: gen_random_uuid()
                   constraints:
                     primaryKey: true
+                    primaryKeyName: pk_rooms
                     nullable: false
               - column:
                   name: zone_id
                   type: UUID
                   constraints:
                     nullable: false
-                    foreignKeyName: fk_rooms_zones
-                    references: zones(id)
               - column:
                   name: name
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
                   type: VARCHAR(255)
                   constraints:
                     nullable: false
@@ -46,15 +51,53 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: status
-                  type: VARCHAR(50)
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
                   constraints:
                     nullable: false
               - column:
                   name: deleted_at
                   type: TIMESTAMPTZ
-                  constraints:
-                    nullable: true
+        - addForeignKeyConstraint:
+            constraintName: fk_rooms_zones
+            baseTableName: rooms
+            baseColumnNames: zone_id
+            referencedTableName: zones
+            referencedColumnNames: id
+            onDelete: CASCADE
         - addUniqueConstraint:
+            constraintName: uq_rooms_zone_name
             tableName: rooms
             columnNames: zone_id, name
-            constraintName: uq_rooms_zone_name
+        - sql:
+            sql: |
+              ALTER TABLE rooms
+                ADD CONSTRAINT chk_rooms_status
+                CHECK (status IN ('AVAILABLE', 'BOOKED', 'MAINTENANCE'));
+
+              ALTER TABLE rooms
+                ADD CONSTRAINT chk_rooms_total_surface_area
+                CHECK (total_surface_area > 0);
+
+              ALTER TABLE rooms
+                ADD CONSTRAINT chk_rooms_price_daily
+                CHECK (price_per_sqm_daily > 0);
+
+              ALTER TABLE rooms
+                ADD CONSTRAINT chk_rooms_price_weekly
+                CHECK (price_per_sqm_weekly > 0);
+
+              ALTER TABLE rooms
+                ADD CONSTRAINT chk_rooms_price_monthly
+                CHECK (price_per_sqm_monthly > 0);
