@@ -1,0 +1,60 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-03-27-create-rooms-table
+      author: gulay
+      changes:
+        - createTable:
+            tableName: rooms
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: zone_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_rooms_zones
+                    references: zones(id)
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: total_surface_area
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: price_per_sqm_daily
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: price_per_sqm_weekly
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: price_per_sqm_monthly
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: TIMESTAMPTZ
+                  constraints:
+                    nullable: true
+        - addUniqueConstraint:
+            tableName: rooms
+            columnNames: zone_id, name
+            constraintName: uq_rooms_zone_name

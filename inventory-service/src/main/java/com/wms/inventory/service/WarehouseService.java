@@ -10,6 +10,7 @@ import com.wms.inventory.dto.warehouse.WarehouseResponse;
 import com.wms.inventory.entity.Warehouse;
 import com.wms.inventory.repository.WarehouseRepository;
 import com.wms.inventory.specification.WarehouseSpecification;
+import com.wms.inventory.validator.WarehouseValidator;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class WarehouseService {
 
   private final WarehouseRepository warehouseRepository;
+  private final WarehouseValidator validator;
 
   @Transactional
   public WarehouseResponse create(UUID ownerId, CreateWarehouseRequest request) {
@@ -164,7 +166,7 @@ public class WarehouseService {
     if (warehouse.getStatus() != WarehouseStatus.DRAFT) {
       throw new BusinessRuleException("Only DRAFT warehouses can be published");
     }
-
+    validator.validatePublishable(warehouse);
     warehouse.setStatus(WarehouseStatus.PUBLISHED);
     return WarehouseResponse.from(warehouseRepository.save(warehouse));
   }

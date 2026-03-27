@@ -3,15 +3,9 @@ package com.wms.inventory.entity;
 import com.wms.common.entity.BaseEntity;
 import com.wms.common.enums.TemperatureType;
 import com.wms.common.enums.ZoneStatus;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -53,4 +47,7 @@ public class Zone extends BaseEntity {
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
   ZoneStatus status;
+
+  @OneToMany(mappedBy = "zone", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private List<Room> rooms;
 }
