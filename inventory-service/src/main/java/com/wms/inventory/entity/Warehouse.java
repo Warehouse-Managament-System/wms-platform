@@ -4,7 +4,6 @@ import com.wms.common.entity.BaseEntity;
 import com.wms.common.enums.WarehouseStatus;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.UUID;
 import lombok.*;
 
@@ -51,7 +50,4 @@ public class Warehouse extends BaseEntity {
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
   private WarehouseStatus status;
-
-  @OneToMany(mappedBy = "warehouse", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  private List<Zone> zones;
 }

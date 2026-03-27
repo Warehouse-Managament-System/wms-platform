@@ -5,7 +5,6 @@ import com.wms.common.enums.TemperatureType;
 import com.wms.common.enums.ZoneStatus;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -47,7 +46,4 @@ public class Zone extends BaseEntity {
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
   ZoneStatus status;
-
-  @OneToMany(mappedBy = "zone", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  private List<Room> rooms;
 }

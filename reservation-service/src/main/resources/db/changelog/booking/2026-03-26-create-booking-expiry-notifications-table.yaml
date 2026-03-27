@@ -1,0 +1,53 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-03-26-create-booking-expiry-notifications-table
+      author: Ali Ramazanov
+      changes:
+        - createTable:
+            tableName: booking_expiry_notifications
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_booking_expiry_notifications
+                    nullable: false
+              - column:
+                  name: booking_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: notified_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: booking_expiry_notifications
+            columnNames: booking_id
+            constraintName: uq_booking_expiry_booking_id
+        - addForeignKeyConstraint:
+            baseTableName: booking_expiry_notifications
+            baseColumnNames: booking_id
+            referencedTableName: bookings
+            referencedColumnNames: id
+            constraintName: fk_booking_expiry_booking_id
+        - sql:
+            sql: |
+              ALTER TABLE booking_expiry_notifications
+                ADD CONSTRAINT chk_booking_expiry_status
+                CHECK (status IN ('PENDING', 'SENT', 'FAILED', 'READ'));

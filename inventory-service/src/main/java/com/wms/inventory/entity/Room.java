@@ -1,35 +1,29 @@
 package com.wms.inventory.entity;
 
+import com.wms.common.entity.SoftDeleteEntity;
 import com.wms.common.enums.RoomStatus;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.UUID;
 import lombok.*;
 
 @Entity
-@Table(
-    name = "rooms",
-    uniqueConstraints = {
-      @UniqueConstraint(
-          name = "uq_rooms_zone_name",
-          columnNames = {"zone_id", "name"})
-    })
+@Table(name = "rooms")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Room {
-
-  @Id @GeneratedValue private UUID id;
+public class Room extends SoftDeleteEntity {
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "zone_id", nullable = false, foreignKey = @ForeignKey(name = "fk_rooms_zones"))
+  @JoinColumn(name = "zone_id", nullable = false)
   private Zone zone;
 
-  @Column(nullable = false)
+  @Column(nullable = false, length = 100)
   private String name;
+
+  @Column(nullable = false, length = 255)
+  private String description;
 
   @Column(name = "total_surface_area", nullable = false, precision = 10, scale = 2)
   private BigDecimal totalSurfaceArea;
@@ -44,18 +38,6 @@ public class Room {
   private BigDecimal pricePerSqmMonthly;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
-  private RoomStatus status; // <-- use your external enum
-
-  @Column(name = "deleted_at")
-  private Instant deletedAt;
-
-  /** Soft delete helper */
-  public void softDelete() {
-    this.deletedAt = Instant.now();
-  }
-
-  public boolean isDeleted() {
-    return this.deletedAt != null;
-  }
+  @Column(nullable = false, length = 20)
+  private RoomStatus status;
 }

@@ -8,10 +8,13 @@ import com.wms.inventory.dto.warehouse.CreateWarehouseRequest;
 import com.wms.inventory.dto.warehouse.UpdateWarehouseRequest;
 import com.wms.inventory.dto.warehouse.WarehouseResponse;
 import com.wms.inventory.entity.Warehouse;
+import com.wms.inventory.entity.Zone;
+import com.wms.inventory.repository.RoomRepository;
 import com.wms.inventory.repository.WarehouseRepository;
+import com.wms.inventory.repository.ZoneRepository;
 import com.wms.inventory.specification.WarehouseSpecification;
-import com.wms.inventory.validator.WarehouseValidator;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
@@ -25,7 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class WarehouseService {
 
   private final WarehouseRepository warehouseRepository;
-  private final WarehouseValidator validator;
+  private final ZoneRepository zoneRepository;
+  private final RoomRepository roomRepository;
 
   @Transactional
   public WarehouseResponse create(UUID ownerId, CreateWarehouseRequest request) {
@@ -166,7 +170,18 @@ public class WarehouseService {
     if (warehouse.getStatus() != WarehouseStatus.DRAFT) {
       throw new BusinessRuleException("Only DRAFT warehouses can be published");
     }
-    validator.validatePublishable(warehouse);
+
+    List<Zone> zones = zoneRepository.findByWarehouseId(id);
+    if (zones.isEmpty()) {
+      throw new BusinessRuleException("Warehouse must have at least one zone before publishing");
+    }
+    for (Zone zone : zones) {
+      if (roomRepository.countByZoneId(zone.getId()) == 0) {
+        throw new BusinessRuleException(
+            "Zone '" + zone.getName() + "' must have at least one room before publishing");
+      }
+    }
+
     warehouse.setStatus(WarehouseStatus.PUBLISHED);
     return WarehouseResponse.from(warehouseRepository.save(warehouse));
   }
