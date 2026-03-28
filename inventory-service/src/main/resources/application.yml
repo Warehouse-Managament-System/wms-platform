@@ -17,6 +17,7 @@ spring:
       hibernate:
         format_sql: true
   liquibase:
+    drop-first: true # TODO: set to false before production
     change-log: classpath:db/changelog/db.changelog-master.yaml
   kafka:
     bootstrap-servers: localhost:9092
