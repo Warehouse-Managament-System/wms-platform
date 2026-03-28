@@ -1,0 +1,53 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-03-28-create-delivery-notifications-table
+      author: Ali Ramazanov
+      changes:
+        - createTable:
+            tableName: delivery_notifications
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_delivery_notifications
+                    nullable: false
+              - column:
+                  name: delivery_request_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: notified_by
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: notified_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expires_at
+                  type: TIMESTAMPTZ
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            constraintName: fk_delivery_notif_request_id
+            baseTableName: delivery_notifications
+            baseColumnNames: delivery_request_id
+            referencedTableName: delivery_requests
+            referencedColumnNames: id
+        - sql:
+            sql: |
+              ALTER TABLE delivery_notifications
+                ADD CONSTRAINT chk_delivery_notif_status
+                CHECK (status IN ('OPEN', 'CLAIMED', 'EXPIRED'));

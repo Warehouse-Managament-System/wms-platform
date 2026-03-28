@@ -1,0 +1,62 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-03-28-create-delivery-request-items-table
+      author: Ali Ramazanov
+      changes:
+        - createTable:
+            tableName: delivery_request_items
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_delivery_request_items
+                    nullable: false
+              - column:
+                  name: delivery_request_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: goods_item_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: requested_qty
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: picked_qty
+                  type: DECIMAL(10,2)
+                  defaultValueNumeric: "0"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: picked_by
+                  type: UUID
+              - column:
+                  name: picked_at
+                  type: TIMESTAMPTZ
+        - addForeignKeyConstraint:
+            constraintName: fk_delivery_items_request_id
+            baseTableName: delivery_request_items
+            baseColumnNames: delivery_request_id
+            referencedTableName: delivery_requests
+            referencedColumnNames: id
+        - addUniqueConstraint:
+            constraintName: uq_delivery_items_request_goods
+            tableName: delivery_request_items
+            columnNames: delivery_request_id, goods_item_id
+        - sql:
+            sql: |
+              ALTER TABLE delivery_request_items
+                ADD CONSTRAINT chk_delivery_items_requested_qty
+                CHECK (requested_qty > 0);
+
+              ALTER TABLE delivery_request_items
+                ADD CONSTRAINT chk_delivery_items_picked_qty
+                CHECK (picked_qty >= 0);
