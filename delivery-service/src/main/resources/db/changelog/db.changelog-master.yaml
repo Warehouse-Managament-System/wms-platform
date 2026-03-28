@@ -63,17 +63,28 @@ databaseChangeLog:
                   name: published_at
                   type: TIMESTAMPTZ
         - sql:
-            comment: CHECK constraint and partial index require raw SQL (Liquibase Pro features)
             sql: |
               ALTER TABLE outbox_events
-                  ADD CONSTRAINT ck_outbox_events_status
-                  CHECK (status IN ('PENDING', 'SENT', 'FAILED'));
+                ADD CONSTRAINT ck_outbox_events_status
+                CHECK (status IN ('PENDING', 'SENT', 'FAILED'));
 
               CREATE INDEX idx_outbox_pending
-                  ON outbox_events(status) WHERE status = 'PENDING';
+                ON outbox_events(status) WHERE status = 'PENDING';
         - createIndex:
             indexName: idx_outbox_events_created_at
             tableName: outbox_events
             columns:
               - column:
                   name: created_at
+
+  - include:
+      file: db/changelog/delivery/2026-03-28-create-delivery-requests-table.yaml
+  - include:
+      file: db/changelog/delivery/2026-03-28-create-delivery-request-items-table.yaml
+  - include:
+      file: db/changelog/delivery/2026-03-28-create-delivery-notifications-table.yaml
+
+  - include:
+      file: db/changelog/shipment/2026-03-28-create-shipments-table.yaml
+  - include:
+      file: db/changelog/shipment/2026-03-28-create-shipment-checkpoints-table.yaml

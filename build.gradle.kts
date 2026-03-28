@@ -39,6 +39,10 @@ subprojects {
 
         implementation(platform(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES))
         annotationProcessor(platform(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES))
+
+        constraints {
+            implementation("commons-fileupload:commons-fileupload:1.6.0")
+        }
     }
 }
 

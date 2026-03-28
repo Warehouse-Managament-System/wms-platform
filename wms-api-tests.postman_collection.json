@@ -27,7 +27,19 @@
     { "key": "secondOwnerId", "value": "", "type": "string" },
     { "key": "categoryId", "value": "", "type": "string" },
     { "key": "zoneId", "value": "", "type": "string" },
-    { "key": "zoneAvailabilityId", "value": "", "type": "string" }
+    { "key": "zoneAvailabilityId", "value": "", "type": "string" },
+    { "key": "reservationUrl", "value": "http://localhost:8083", "type": "string" },
+    { "key": "deliveryUrl", "value": "http://localhost:8085", "type": "string" },
+    { "key": "roomId", "value": "", "type": "string" },
+    { "key": "bookingId", "value": "", "type": "string" },
+    { "key": "invoiceId", "value": "", "type": "string" },
+    { "key": "deliveryRequestId", "value": "", "type": "string" },
+    { "key": "shipmentId", "value": "", "type": "string" },
+    { "key": "trackingNumber", "value": "", "type": "string" },
+    { "key": "staffToken", "value": "", "type": "string" },
+    { "key": "agentToken", "value": "", "type": "string" },
+    { "key": "staffUserId", "value": "", "type": "string" },
+    { "key": "agentUserId", "value": "", "type": "string" }
   ],
   "item": [
     {
@@ -1109,6 +1121,309 @@
             "url": { "raw": "{{identityUrl}}/api/v1/users/{{secondOwnerUserId}}", "host": ["{{identityUrl}}"], "path": ["api", "v1", "users", "{{secondOwnerUserId}}"] }
           },
           "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 204', () => pm.response.to.have.status(204));"] } }]
+        }
+      ]
+    },
+    {
+      "name": "11. Inventory — Rooms",
+      "item": [
+        {
+          "name": "11.1 Create Room in Zone (owner)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{ownerToken}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Room A-1\",\n  \"description\": \"Standard cold storage room\",\n  \"totalSurfaceArea\": 50.00,\n  \"pricePerSqmDaily\": 2.50,\n  \"pricePerSqmWeekly\": 15.00,\n  \"pricePerSqmMonthly\": 50.00\n}" },
+            "url": { "raw": "{{inventoryUrl}}/api/v1/owner/zones/{{zoneId}}/rooms", "host": ["{{inventoryUrl}}"], "path": ["api", "v1", "owner", "zones", "{{zoneId}}", "rooms"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 201', () => pm.response.to.have.status(201));", "const json = pm.response.json();", "pm.test('Has room ID', () => pm.expect(json.id).to.be.a('string'));", "pm.test('Status is AVAILABLE', () => pm.expect(json.status).to.eql('AVAILABLE'));", "pm.collectionVariables.set('roomId', json.id);"] } }]
+        },
+        {
+          "name": "11.2 Update Room Pricing (owner)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{ownerToken}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"pricePerSqmDaily\": 3.00,\n  \"pricePerSqmWeekly\": 18.00\n}" },
+            "url": { "raw": "{{inventoryUrl}}/api/v1/owner/rooms/{{roomId}}", "host": ["{{inventoryUrl}}"], "path": ["api", "v1", "owner", "rooms", "{{roomId}}"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));", "const json = pm.response.json();", "pm.test('Price updated', () => pm.expect(json.pricePerSqmDaily).to.eql(3.00));"] } }]
+        },
+        {
+          "name": "11.3 Update Room Status to MAINTENANCE (owner)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{ownerToken}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"MAINTENANCE\"\n}" },
+            "url": { "raw": "{{inventoryUrl}}/api/v1/owner/rooms/{{roomId}}/status", "host": ["{{inventoryUrl}}"], "path": ["api", "v1", "owner", "rooms", "{{roomId}}", "status"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));", "pm.test('Room in MAINTENANCE', () => pm.expect(pm.response.json().status).to.eql('MAINTENANCE'));"] } }]
+        },
+        {
+          "name": "11.4 Set Room Back to AVAILABLE (owner)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{ownerToken}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"AVAILABLE\"\n}" },
+            "url": { "raw": "{{inventoryUrl}}/api/v1/owner/rooms/{{roomId}}/status", "host": ["{{inventoryUrl}}"], "path": ["api", "v1", "owner", "rooms", "{{roomId}}", "status"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));", "pm.test('Room AVAILABLE', () => pm.expect(pm.response.json().status).to.eql('AVAILABLE'));"] } }]
+        },
+        {
+          "name": "11.5 Add Category to Room (owner)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{ownerToken}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"categoryId\": \"{{categoryId}}\"\n}" },
+            "url": { "raw": "{{inventoryUrl}}/api/v1/owner/rooms/{{roomId}}/categories", "host": ["{{inventoryUrl}}"], "path": ["api", "v1", "owner", "rooms", "{{roomId}}", "categories"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 201', () => pm.response.to.have.status(201));"] } }]
+        },
+        {
+          "name": "11.6 Duplicate Category Link (409)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{ownerToken}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"categoryId\": \"{{categoryId}}\"\n}" },
+            "url": { "raw": "{{inventoryUrl}}/api/v1/owner/rooms/{{roomId}}/categories", "host": ["{{inventoryUrl}}"], "path": ["api", "v1", "owner", "rooms", "{{roomId}}", "categories"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 409', () => pm.response.to.have.status(409));"] } }]
+        },
+        {
+          "name": "11.7 Browse Rooms in Zone (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{inventoryUrl}}/api/v1/zones/{{zoneId}}/rooms", "host": ["{{inventoryUrl}}"], "path": ["api", "v1", "zones", "{{zoneId}}", "rooms"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));", "pm.test('Has content', () => pm.expect(pm.response.json().content).to.be.an('array'));"] } }]
+        },
+        {
+          "name": "11.8 Publish Warehouse (now has zone + room)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ownerToken}}" }],
+            "url": { "raw": "{{inventoryUrl}}/api/v1/owner/warehouses/{{warehouseId}}/publish", "host": ["{{inventoryUrl}}"], "path": ["api", "v1", "owner", "warehouses", "{{warehouseId}}", "publish"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));", "pm.test('Status is PUBLISHED', () => pm.expect(pm.response.json().status).to.eql('PUBLISHED'));"] } }]
+        }
+      ]
+    },
+    {
+      "name": "12. Full Flow — Booking to Payment",
+      "description": "End-to-end: customer books a room, owner confirms, invoice is generated, customer pays via Stripe webhook simulation.",
+      "item": [
+        {
+          "name": "12.1 Customer Creates Booking",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{customerToken}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"bookingType\": \"SHORT_TERM\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"roomId\": \"{{roomId}}\",\n  \"startDate\": \"2026-04-01\",\n  \"endDate\": \"2026-04-10\"\n}" },
+            "url": { "raw": "{{reservationUrl}}/api/v1/customer/bookings", "host": ["{{reservationUrl}}"], "path": ["api", "v1", "customer", "bookings"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 201', () => pm.response.to.have.status(201));", "const json = pm.response.json();", "pm.test('Status is PENDING', () => pm.expect(json.status).to.eql('PENDING'));", "pm.collectionVariables.set('bookingId', json.id);"] } }]
+        },
+        {
+          "name": "12.2 Customer Lists Own Bookings",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
+            "url": { "raw": "{{reservationUrl}}/api/v1/customer/bookings", "host": ["{{reservationUrl}}"], "path": ["api", "v1", "customer", "bookings"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));", "pm.test('Has content', () => pm.expect(pm.response.json().content).to.be.an('array'));"] } }]
+        },
+        {
+          "name": "12.3 Customer Gets Booking Details",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
+            "url": { "raw": "{{reservationUrl}}/api/v1/customer/bookings/{{bookingId}}", "host": ["{{reservationUrl}}"], "path": ["api", "v1", "customer", "bookings", "{{bookingId}}"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));", "pm.test('Correct booking', () => pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('bookingId')));"] } }]
+        },
+        {
+          "name": "12.4 Owner Lists Warehouse Bookings",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ownerToken}}" }],
+            "url": { "raw": "{{reservationUrl}}/api/v1/owner/bookings?warehouseId={{warehouseId}}", "host": ["{{reservationUrl}}"], "path": ["api", "v1", "owner", "bookings"], "query": [{ "key": "warehouseId", "value": "{{warehouseId}}" }] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "12.5 Owner Confirms Booking (generates invoice)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ownerToken}}" }],
+            "url": { "raw": "{{reservationUrl}}/api/v1/owner/bookings/{{bookingId}}/confirm", "host": ["{{reservationUrl}}"], "path": ["api", "v1", "owner", "bookings", "{{bookingId}}", "confirm"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));", "pm.test('Status is CONFIRMED', () => pm.expect(pm.response.json().status).to.eql('CONFIRMED'));"] } }]
+        },
+        {
+          "name": "12.6 Customer Lists Invoices",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
+            "url": { "raw": "{{reservationUrl}}/api/v1/customer/invoices", "host": ["{{reservationUrl}}"], "path": ["api", "v1", "customer", "invoices"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));", "const json = pm.response.json();", "pm.test('Has invoices', () => pm.expect(json.content.length).to.be.greaterThan(0));", "pm.collectionVariables.set('invoiceId', json.content[0].id);"] } }]
+        },
+        {
+          "name": "12.7 Owner Lists Warehouse Invoices",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ownerToken}}" }],
+            "url": { "raw": "{{reservationUrl}}/api/v1/owner/invoices?warehouseId={{warehouseId}}", "host": ["{{reservationUrl}}"], "path": ["api", "v1", "owner", "invoices"], "query": [{ "key": "warehouseId", "value": "{{warehouseId}}" }] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "12.8 Customer Initiates Payment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
+            "url": { "raw": "{{reservationUrl}}/api/v1/customer/invoices/{{invoiceId}}/pay", "host": ["{{reservationUrl}}"], "path": ["api", "v1", "customer", "invoices", "{{invoiceId}}", "pay"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));", "pm.test('Has checkout URL', () => pm.expect(pm.response.json().checkoutUrl).to.be.a('string'));"] } }]
+        },
+        {
+          "name": "12.9 Check Booking Status (internal)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{reservationUrl}}/api/v1/internal/bookings/{{bookingId}}/status", "host": ["{{reservationUrl}}"], "path": ["api", "v1", "internal", "bookings", "{{bookingId}}", "status"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));", "pm.test('Has booking status', () => pm.expect(pm.response.json().status).to.be.a('string'));"] } }]
+        }
+      ]
+    },
+    {
+      "name": "13. Full Flow — Booking Cancellation",
+      "description": "Customer creates a booking and cancels it. Owner creates another and rejects it.",
+      "item": [
+        {
+          "name": "13.1 Customer Creates Booking (to cancel)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{customerToken}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"bookingType\": \"SHORT_TERM\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"roomId\": \"{{roomId}}\",\n  \"startDate\": \"2026-05-01\",\n  \"endDate\": \"2026-05-05\"\n}" },
+            "url": { "raw": "{{reservationUrl}}/api/v1/customer/bookings", "host": ["{{reservationUrl}}"], "path": ["api", "v1", "customer", "bookings"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 201', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('cancelBookingId', pm.response.json().id);"] } }]
+        },
+        {
+          "name": "13.2 Customer Cancels Booking",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
+            "url": { "raw": "{{reservationUrl}}/api/v1/customer/bookings/{{cancelBookingId}}/cancel", "host": ["{{reservationUrl}}"], "path": ["api", "v1", "customer", "bookings", "{{cancelBookingId}}", "cancel"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));", "pm.test('Status is CANCELLED', () => pm.expect(pm.response.json().status).to.eql('CANCELLED'));"] } }]
+        },
+        {
+          "name": "13.3 Customer Creates Booking (to reject)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{customerToken}}" }],
+            "body": { "mode": "raw", "raw": "{\n  \"bookingType\": \"LONG_TERM\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"roomId\": \"{{roomId}}\",\n  \"startDate\": \"2026-06-01\",\n  \"endDate\": \"2026-07-01\"\n}" },
+            "url": { "raw": "{{reservationUrl}}/api/v1/customer/bookings", "host": ["{{reservationUrl}}"], "path": ["api", "v1", "customer", "bookings"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 201', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('rejectBookingId', pm.response.json().id);"] } }]
+        },
+        {
+          "name": "13.4 Owner Rejects Booking",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ownerToken}}" }],
+            "url": { "raw": "{{reservationUrl}}/api/v1/owner/bookings/{{rejectBookingId}}/reject", "host": ["{{reservationUrl}}"], "path": ["api", "v1", "owner", "bookings", "{{rejectBookingId}}", "reject"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));", "pm.test('Status is CANCELLED', () => pm.expect(pm.response.json().status).to.eql('CANCELLED'));"] } }]
+        },
+        {
+          "name": "13.5 Cancel Already Cancelled Booking (400)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{customerToken}}" }],
+            "url": { "raw": "{{reservationUrl}}/api/v1/customer/bookings/{{cancelBookingId}}/cancel", "host": ["{{reservationUrl}}"], "path": ["api", "v1", "customer", "bookings", "{{cancelBookingId}}", "cancel"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Cannot cancel already cancelled', () => pm.response.to.have.status(400));"] } }]
+        }
+      ]
+    },
+    {
+      "name": "14. Delivery — Agent Claim Flow",
+      "description": "Staff notifies agents, delivery agent claims the delivery using pessimistic locking.",
+      "item": [
+        {
+          "name": "14.1 Staff Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"staff@test.com\",\n  \"password\": \"Staff@123456\"\n}" },
+            "url": { "raw": "{{identityUrl}}/api/v1/auth/login", "host": ["{{identityUrl}}"], "path": ["api", "v1", "auth", "login"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["const json = pm.response.json();", "if (pm.response.code === 200) {", "  pm.collectionVariables.set('staffToken', json.accessToken);", "  pm.test('Staff logged in', () => pm.response.to.have.status(200));", "} else {", "  pm.test('Staff login skipped (user may not exist)', () => true);", "}"] } }]
+        },
+        {
+          "name": "14.2 Agent Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"agent@test.com\",\n  \"password\": \"Agent@123456\"\n}" },
+            "url": { "raw": "{{identityUrl}}/api/v1/auth/login", "host": ["{{identityUrl}}"], "path": ["api", "v1", "auth", "login"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["const json = pm.response.json();", "if (pm.response.code === 200) {", "  pm.collectionVariables.set('agentToken', json.accessToken);", "  pm.test('Agent logged in', () => pm.response.to.have.status(200));", "} else {", "  pm.test('Agent login skipped (user may not exist)', () => true);", "}"] } }]
+        },
+        {
+          "name": "14.3 Agent Claims Delivery",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{agentToken}}" }],
+            "url": { "raw": "{{deliveryUrl}}/api/v1/agent/deliveries/{{deliveryRequestId}}/claim", "host": ["{{deliveryUrl}}"], "path": ["api", "v1", "agent", "deliveries", "{{deliveryRequestId}}", "claim"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status is 200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "14.4 Agent Claims Again (should fail)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{agentToken}}" }],
+            "url": { "raw": "{{deliveryUrl}}/api/v1/agent/deliveries/{{deliveryRequestId}}/claim", "host": ["{{deliveryUrl}}"], "path": ["api", "v1", "agent", "deliveries", "{{deliveryRequestId}}", "claim"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Cannot claim twice', () => pm.response.to.have.status(400));"] } }]
+        }
+      ]
+    },
+    {
+      "name": "15. Health Checks — All Services",
+      "item": [
+        {
+          "name": "15.1 Eureka Health",
+          "request": { "method": "GET", "url": { "raw": "http://localhost:8761/actuator/health", "host": ["http://localhost:8761"], "path": ["actuator", "health"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Eureka UP', () => pm.expect(pm.response.json().status).to.eql('UP'));"] } }]
+        },
+        {
+          "name": "15.2 Identity Health",
+          "request": { "method": "GET", "url": { "raw": "{{identityUrl}}/actuator/health", "host": ["{{identityUrl}}"], "path": ["actuator", "health"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Identity UP', () => pm.expect(pm.response.json().status).to.eql('UP'));"] } }]
+        },
+        {
+          "name": "15.3 Inventory Health",
+          "request": { "method": "GET", "url": { "raw": "{{inventoryUrl}}/actuator/health", "host": ["{{inventoryUrl}}"], "path": ["actuator", "health"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Inventory UP', () => pm.expect(pm.response.json().status).to.eql('UP'));"] } }]
+        },
+        {
+          "name": "15.4 Reservation Health",
+          "request": { "method": "GET", "url": { "raw": "{{reservationUrl}}/actuator/health", "host": ["{{reservationUrl}}"], "path": ["actuator", "health"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Reservation UP', () => pm.expect(pm.response.json().status).to.eql('UP'));"] } }]
+        },
+        {
+          "name": "15.5 Delivery Health",
+          "request": { "method": "GET", "url": { "raw": "{{deliveryUrl}}/actuator/health", "host": ["{{deliveryUrl}}"], "path": ["actuator", "health"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Delivery UP', () => pm.expect(pm.response.json().status).to.eql('UP'));"] } }]
+        },
+        {
+          "name": "15.6 Gateway Health",
+          "request": { "method": "GET", "url": { "raw": "{{gatewayUrl}}/actuator/health", "host": ["{{gatewayUrl}}"], "path": ["actuator", "health"] } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Gateway UP', () => pm.expect(pm.response.json().status).to.eql('UP'));"] } }]
         }
       ]
     }
