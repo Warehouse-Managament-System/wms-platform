@@ -1,10 +1,11 @@
 package com.wms.delivery.controller;
 
+import com.wms.common.security.UserContextHolder;
 import com.wms.delivery.dto.shipment.AddCheckpointRequest;
 import com.wms.delivery.dto.shipment.ShipmentCheckpointResponse;
-import com.wms.delivery.entity.ShipmentCheckpoint;
+import com.wms.delivery.dto.shipment.ShipmentTrackingResponse;
 import com.wms.delivery.service.ShipmentService;
-import java.util.List;
+import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,33 +20,13 @@ public class AgentShipmentController {
 
   @PostMapping("/{id}/checkpoints")
   public ResponseEntity<ShipmentCheckpointResponse> addCheckpoint(
-      @PathVariable("id") UUID shipmentId, @RequestBody AddCheckpointRequest request) {
-    UUID agentId = getAgentIdFromContext();
-
-    ShipmentCheckpointResponse response =
-        shipmentService.addCheckpoint(shipmentId, agentId, request);
-    return ResponseEntity.ok(response);
+      @PathVariable("id") UUID shipmentId, @Valid @RequestBody AddCheckpointRequest request) {
+    UUID agentId = UserContextHolder.get().userId();
+    return ResponseEntity.ok(shipmentService.addCheckpoint(shipmentId, agentId, request));
   }
 
-  @GetMapping("/{id}/checkpoints")
-  public ResponseEntity<List<ShipmentCheckpointResponse>> getCheckpoints(
-      @PathVariable("id") UUID shipmentId) {
-    List<ShipmentCheckpointResponse> checkpoints =
-        shipmentService.getCheckpointsByStatus(shipmentId, null);
-    return ResponseEntity.ok(checkpoints);
-  }
-
-  private UUID getAgentIdFromContext() {
-    return UUID.fromString("00000000-0000-0000-0000-000000000001");
-  }
-
-  @GetMapping("/{shipmentId}/latest-checkpoint")
-  public ShipmentCheckpoint getLatestCheckpointForAgent(@PathVariable UUID shipmentId) {
-    return shipmentService.getLatestCheckpoint(shipmentId);
-  }
-
-  @GetMapping("/{shipmentId}/is-delivered")
-  public boolean isDeliveredForAgent(@PathVariable UUID shipmentId) {
-    return shipmentService.isDelivered(shipmentId);
+  @GetMapping("/{id}/track")
+  public ResponseEntity<ShipmentTrackingResponse> track(@PathVariable("id") UUID shipmentId) {
+    return ResponseEntity.ok(shipmentService.track(shipmentId));
   }
 }

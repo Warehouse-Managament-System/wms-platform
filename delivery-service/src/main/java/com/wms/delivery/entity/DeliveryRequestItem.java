@@ -1,37 +1,40 @@
 package com.wms.delivery.entity;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
+@Entity
+@Table(name = "delivery_request_items")
 @Getter
 @Setter
-@Entity
-@Table(
-    name = "delivery_request_items",
-    uniqueConstraints = {@UniqueConstraint(columnNames = {"delivery_request_id", "goods_item_id"})})
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class DeliveryRequestItem {
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
-  @Column(name = "delivery_request_id", nullable = false)
-  private UUID deliveryRequestId;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "delivery_request_id", nullable = false)
+  private DeliveryRequest deliveryRequest;
 
   @Column(name = "goods_item_id", nullable = false)
-  private UUID goodsItemId; // Reference to goods item
+  private UUID goodsItemId;
 
-  @Column(name = "requested_qty", nullable = false)
-  private Integer requestedQty;
+  @Column(name = "requested_qty", nullable = false, precision = 10, scale = 2)
+  private BigDecimal requestedQty;
 
-  @Column(name = "picked_qty", nullable = false)
-  private Integer pickedQty = 0;
+  @Builder.Default
+  @Column(name = "picked_qty", nullable = false, precision = 10, scale = 2)
+  private BigDecimal pickedQty = BigDecimal.ZERO;
 
   @Column(name = "picked_by")
-  private UUID pickedBy; // Agent/user who picked
+  private UUID pickedBy;
 
   @Column(name = "picked_at")
   private Instant pickedAt;

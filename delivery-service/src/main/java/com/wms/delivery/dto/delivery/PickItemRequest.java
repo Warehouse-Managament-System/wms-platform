@@ -1,7 +1,9 @@
 package com.wms.delivery.dto.delivery;
 
-import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.util.UUID;
 
-public record PickItemRequest(@NotNull UUID goodsItemId, @NotNull @Min(1) Integer pickedQty) {}
+public record PickItemRequest(
+    @NotNull UUID goodsItemId, @NotNull @DecimalMin("0.01") BigDecimal pickedQty) {}

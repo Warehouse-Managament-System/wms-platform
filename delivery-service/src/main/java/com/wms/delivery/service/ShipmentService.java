@@ -2,6 +2,9 @@ package com.wms.delivery.service;
 
 import com.wms.common.enums.DeliveryStatus;
 import com.wms.common.enums.ShipmentStatus;
+import com.wms.common.event.DeliveryCheckpointEvent;
+import com.wms.common.exception.BusinessRuleException;
+import com.wms.common.exception.EntityNotFoundException;
 import com.wms.common.outbox.OutboxPublisher;
 import com.wms.delivery.dto.shipment.*;
 import com.wms.delivery.entity.DeliveryRequest;
@@ -10,14 +13,12 @@ import com.wms.delivery.entity.ShipmentCheckpoint;
 import com.wms.delivery.repository.DeliveryRequestRepository;
 import com.wms.delivery.repository.ShipmentCheckpointRepository;
 import com.wms.delivery.repository.ShipmentRepository;
-import jakarta.transaction.Transactional;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -41,33 +42,29 @@ public class ShipmentService {
     Shipment shipment =
         shipmentRepository
             .findById(shipmentId)
-            .orElseThrow(() -> new RuntimeException("Shipment not found"));
+            .orElseThrow(() -> new EntityNotFoundException("Shipment", shipmentId));
 
     if (!shipment.getClaimedBy().equals(agentId)) {
-      throw new RuntimeException("Only the assigned agent can add checkpoints");
+      throw new BusinessRuleException("Only the assigned agent can add checkpoints");
     }
 
     ShipmentStatus currentStatus = shipment.getStatus();
     ShipmentStatus nextStatus = request.status();
 
-    // Validate status transition
     if (STATUS_FLOW.indexOf(nextStatus) != STATUS_FLOW.indexOf(currentStatus) + 1) {
-      throw new RuntimeException("Invalid status transition");
+      throw new BusinessRuleException("Invalid status transition");
     }
 
-    // Create checkpoint
     ShipmentCheckpoint checkpoint =
         ShipmentCheckpoint.builder()
             .shipment(shipment)
             .status(nextStatus)
             .location(request.location())
             .note(request.note() != null ? request.note() : "")
-            .recordedAt(Instant.now())
             .build();
 
     checkpointRepository.save(checkpoint);
 
-    // Update shipment status
     shipment.setStatus(nextStatus);
 
     if (nextStatus == ShipmentStatus.COMPLETED) {
@@ -80,46 +77,28 @@ public class ShipmentService {
 
     shipmentRepository.save(shipment);
 
-    // Publish outbox event
-    outboxPublisher.publish("shipment", checkpoint.getId(), "delivery.checkpoint", checkpoint);
+    outboxPublisher.publish(
+        "Shipment",
+        shipmentId,
+        "delivery.checkpoint",
+        new DeliveryCheckpointEvent(
+            shipmentId, nextStatus.name(), request.location(), shipment.getTrackingNumber()));
 
     return ShipmentCheckpointResponse.from(checkpoint);
   }
 
-  @Transactional
+  @Transactional(readOnly = true)
   public ShipmentTrackingResponse track(UUID shipmentId) {
     Shipment shipment =
         shipmentRepository
             .findById(shipmentId)
-            .orElseThrow(() -> new RuntimeException("Shipment not found"));
+            .orElseThrow(() -> new EntityNotFoundException("Shipment", shipmentId));
 
     List<ShipmentCheckpointResponse> checkpoints =
         checkpointRepository.findByShipmentIdOrderByRecordedAtAsc(shipmentId).stream()
             .map(ShipmentCheckpointResponse::from)
-            .collect(Collectors.toList());
+            .toList();
 
     return new ShipmentTrackingResponse(ShipmentResponse.from(shipment), checkpoints);
-  }
-
-  @Transactional
-  public ShipmentCheckpoint getLatestCheckpoint(UUID shipmentId) {
-    return checkpointRepository
-        .findFirstByShipmentIdOrderByRecordedAtDesc(shipmentId)
-        .orElseThrow(() -> new RuntimeException("No checkpoints found for shipment"));
-  }
-
-  @Transactional
-  public boolean isDelivered(UUID shipmentId) {
-    return checkpointRepository.existsByShipmentIdAndStatus(shipmentId, ShipmentStatus.COMPLETED);
-  }
-
-  @Transactional
-  public List<ShipmentCheckpointResponse> getCheckpointsByStatus(
-      UUID shipmentId, ShipmentStatus status) {
-    return checkpointRepository
-        .findByShipmentIdAndStatusOrderByRecordedAtAsc(shipmentId, status)
-        .stream()
-        .map(ShipmentCheckpointResponse::from)
-        .collect(Collectors.toList());
   }
 }
