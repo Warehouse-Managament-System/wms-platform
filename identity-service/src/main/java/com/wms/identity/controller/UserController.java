@@ -4,6 +4,7 @@ import com.wms.common.dto.PageResponse;
 import com.wms.common.enums.UserRole;
 import com.wms.common.enums.UserStatus;
 import com.wms.identity.dto.user.UpdateUserProfileRequest;
+import com.wms.identity.dto.user.UpdateUserStatusRequest;
 import com.wms.identity.dto.user.UserResponse;
 import com.wms.identity.service.UserService;
 import jakarta.validation.Valid;
@@ -72,6 +73,12 @@ public class UserController {
             createdFrom,
             createdTo,
             PageRequest.of(page, Math.min(size, 100), sort)));
+  }
+
+  @PatchMapping("/{id}/status")
+  public ResponseEntity<UserResponse> updateStatus(
+      @PathVariable UUID id, @Valid @RequestBody UpdateUserStatusRequest request) {
+    return ResponseEntity.ok(userService.updateStatus(id, request));
   }
 
   @DeleteMapping("/{id}")

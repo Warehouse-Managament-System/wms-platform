@@ -25,7 +25,7 @@ public class OutboxPoller {
 
     for (OutboxEvent event : pendingEvents) {
       try {
-        String topic = event.getAggregateType() + "." + event.getEventType();
+        String topic = event.getEventType();
         kafkaTemplate.send(topic, event.getAggregateId().toString(), event.getPayload());
 
         event.setStatus(OutboxStatus.SENT);

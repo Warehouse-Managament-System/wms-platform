@@ -3,6 +3,7 @@ package com.wms.delivery.service;
 import com.wms.common.enums.DeliveryStatus;
 import com.wms.common.enums.ShipmentStatus;
 import com.wms.common.event.DeliveryCheckpointEvent;
+import com.wms.common.event.KafkaTopics;
 import com.wms.common.exception.BusinessRuleException;
 import com.wms.common.exception.EntityNotFoundException;
 import com.wms.common.outbox.OutboxPublisher;
@@ -67,10 +68,12 @@ public class ShipmentService {
 
     shipment.setStatus(nextStatus);
 
-    if (nextStatus == ShipmentStatus.COMPLETED) {
+    DeliveryRequest dr = shipment.getDeliveryRequest();
+    if (nextStatus == ShipmentStatus.PICKED_UP) {
+      dr.setStatus(DeliveryStatus.IN_TRANSIT);
+      deliveryRequestRepository.save(dr);
+    } else if (nextStatus == ShipmentStatus.COMPLETED) {
       shipment.setActualDeliveryDate(LocalDate.now());
-
-      DeliveryRequest dr = shipment.getDeliveryRequest();
       dr.setStatus(DeliveryStatus.DELIVERED);
       deliveryRequestRepository.save(dr);
     }
@@ -80,7 +83,7 @@ public class ShipmentService {
     outboxPublisher.publish(
         "Shipment",
         shipmentId,
-        "delivery.checkpoint",
+        KafkaTopics.DELIVERY_CHECKPOINT,
         new DeliveryCheckpointEvent(
             shipmentId, nextStatus.name(), request.location(), shipment.getTrackingNumber()));
 
@@ -100,5 +103,12 @@ public class ShipmentService {
             .toList();
 
     return new ShipmentTrackingResponse(ShipmentResponse.from(shipment), checkpoints);
+  }
+
+  @Transactional(readOnly = true)
+  public List<ShipmentResponse> listByAgent(UUID agentId) {
+    return shipmentRepository.findByClaimedBy(agentId).stream()
+        .map(ShipmentResponse::from)
+        .toList();
   }
 }

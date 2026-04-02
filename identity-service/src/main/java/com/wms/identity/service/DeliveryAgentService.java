@@ -3,7 +3,6 @@ package com.wms.identity.service;
 import com.wms.common.dto.PageResponse;
 import com.wms.common.enums.UserRole;
 import com.wms.common.enums.UserStatus;
-import com.wms.common.exception.BusinessRuleException;
 import com.wms.common.exception.EntityNotFoundException;
 import com.wms.common.exception.ResourceConflictException;
 import com.wms.identity.dto.deliveryagent.CreateDeliveryAgentRequest;
@@ -19,6 +18,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,28 +28,29 @@ public class DeliveryAgentService {
 
   private final DeliveryAgentRepository deliveryAgentRepository;
   private final UserRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
 
   @Transactional
   public DeliveryAgentResponse create(CreateDeliveryAgentRequest request) {
-    User user =
-        userRepository
-            .findById(request.userId())
-            .orElseThrow(() -> new EntityNotFoundException("User", request.userId()));
-
-    if (user.getRole() != UserRole.DELIVERY_AGENT) {
-      throw new BusinessRuleException(
-          "User role must be DELIVERY_AGENT, but was " + user.getRole());
-    }
-
-    if (deliveryAgentRepository.existsByUserId(request.userId())) {
-      throw new ResourceConflictException(
-          "Delivery agent profile already exists for user: " + request.userId());
+    if (userRepository.existsByEmailAndDeletedAtIsNull(request.email())) {
+      throw new ResourceConflictException("Email already registered");
     }
 
     if (deliveryAgentRepository.existsByTaxId(request.taxId())) {
       throw new ResourceConflictException(
           "Delivery agent profile already exists with tax ID: " + request.taxId());
     }
+
+    User user =
+        User.builder()
+            .email(request.email())
+            .password(passwordEncoder.encode(request.password()))
+            .firstName(request.firstName())
+            .lastName(request.lastName())
+            .role(UserRole.DELIVERY_AGENT)
+            .status(UserStatus.ACTIVE)
+            .build();
+    userRepository.save(user);
 
     DeliveryAgent agent =
         DeliveryAgent.builder()

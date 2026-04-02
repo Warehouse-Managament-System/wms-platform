@@ -2,6 +2,7 @@ package com.wms.reservation.repository;
 
 import com.wms.common.enums.BookingStatus;
 import com.wms.reservation.entity.Booking;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -23,4 +24,9 @@ public interface BookingRepository
 
   boolean existsByZoneIdAndStatusInAndDeletedAtIsNull(
       UUID zoneId, Collection<BookingStatus> statuses);
+
+  List<Booking> findByEndDateAndStatusAndDeletedAtIsNull(LocalDate endDate, BookingStatus status);
+
+  List<Booking> findByEndDateBeforeAndStatusAndDeletedAtIsNull(
+      LocalDate endDate, BookingStatus status);
 }

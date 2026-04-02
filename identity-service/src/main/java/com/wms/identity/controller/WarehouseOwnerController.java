@@ -1,5 +1,7 @@
 package com.wms.identity.controller;
 
+import com.wms.common.dto.PageResponse;
+import com.wms.common.enums.UserStatus;
 import com.wms.identity.dto.request.CreateWarehouseOwnerRequest;
 import com.wms.identity.dto.request.RejectWarehouseOwnerRequest;
 import com.wms.identity.dto.request.UpdateWarehouseOwnerRequest;
@@ -8,9 +10,12 @@ import com.wms.identity.entity.User;
 import com.wms.identity.repository.UserRepository;
 import com.wms.identity.service.WarehouseOwnerService;
 import jakarta.validation.Valid;
-import java.util.List;
+import java.time.Instant;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,6 +26,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/warehouse-owners")
 @RequiredArgsConstructor
 public class WarehouseOwnerController {
+
+  private static final Set<String> ALLOWED_SORT_FIELDS =
+      Set.of("createdAt", "updatedAt", "companyName", "taxId", "city", "country");
 
   private final WarehouseOwnerService service;
   private final UserRepository userRepository;
@@ -37,8 +45,30 @@ public class WarehouseOwnerController {
   }
 
   @GetMapping
-  public ResponseEntity<List<WarehouseOwnerResponse>> getAll() {
-    return ResponseEntity.ok(service.getAll());
+  public ResponseEntity<PageResponse<WarehouseOwnerResponse>> search(
+      @RequestParam(required = false) String search,
+      @RequestParam(required = false) UserStatus status,
+      @RequestParam(required = false) Instant createdFrom,
+      @RequestParam(required = false) Instant createdTo,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "20") int size,
+      @RequestParam(defaultValue = "createdAt") String sortBy,
+      @RequestParam(defaultValue = "desc") String sortDir) {
+
+    String safeSortBy = ALLOWED_SORT_FIELDS.contains(sortBy) ? sortBy : "createdAt";
+
+    Sort sort =
+        sortDir.equalsIgnoreCase("asc")
+            ? Sort.by(safeSortBy).ascending()
+            : Sort.by(safeSortBy).descending();
+
+    return ResponseEntity.ok(
+        service.search(
+            search,
+            status,
+            createdFrom,
+            createdTo,
+            PageRequest.of(page, Math.min(size, 100), sort)));
   }
 
   @PostMapping("/{id}/approve")

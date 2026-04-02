@@ -1,8 +1,14 @@
 package com.wms.goods.service;
 
 import com.wms.common.enums.GoodsImportStatus;
+import com.wms.common.event.GoodsApprovedEvent;
 import com.wms.common.event.GoodsImportPendingEvent;
+import com.wms.common.event.GoodsRejectedEvent;
+import com.wms.common.event.KafkaTopics;
+import com.wms.common.exception.BusinessRuleException;
+import com.wms.common.exception.EntityNotFoundException;
 import com.wms.goods.dto.ApproveGoodsImportRequest;
+import com.wms.goods.dto.GoodsItemResponse;
 import com.wms.goods.dto.RejectGoodsImportRequest;
 import com.wms.goods.dto.GoodsImportResponse;
 import com.wms.goods.entity.GoodsExcelImport;
@@ -48,12 +54,12 @@ public class GoodsImportService {
         outboxPublisher.publish(
             "GoodsImport",
             importRecord.getId(),
-            "goods.import.pending",
+            KafkaTopics.GOODS_IMPORT_PENDING,
             new GoodsImportPendingEvent(
                 importRecord.getId(),
                 importRecord.getWarehouseId(),
                 importRecord.getCustomerId(),
-                importRecord.getSuccessRows()
+                items.size()
             )
         );
 
@@ -64,10 +70,10 @@ public class GoodsImportService {
     public void approve(UUID id, UUID ownerId, ApproveGoodsImportRequest request) {
 
         GoodsExcelImport importRecord = importRepository.findById(id)
-            .orElseThrow();
+            .orElseThrow(() -> new EntityNotFoundException("GoodsExcelImport", id));
 
         if (!importRecord.getStatus().equals(GoodsImportStatus.PENDING)) {
-            throw new IllegalStateException("Invalid status");
+            throw new BusinessRuleException("Import must be in PENDING status to approve");
         }
 
         importRecord.setStatus(GoodsImportStatus.APPROVED);
@@ -77,23 +83,61 @@ public class GoodsImportService {
 
         importRepository.save(importRecord);
 
-        outboxPublisher.publish("GoodsImport", id, "goods.approved", null);
+        outboxPublisher.publish(
+            "GoodsImport",
+            id,
+            KafkaTopics.GOODS_APPROVED,
+            new GoodsApprovedEvent(id, importRecord.getWarehouseId(), ownerId));
     }
 
     @Transactional
     public void reject(UUID id, UUID ownerId, RejectGoodsImportRequest request) {
 
         GoodsExcelImport importRecord = importRepository.findById(id)
-            .orElseThrow();
+            .orElseThrow(() -> new EntityNotFoundException("GoodsExcelImport", id));
 
         if (!importRecord.getStatus().equals(GoodsImportStatus.PENDING)) {
-            throw new IllegalStateException("Invalid status");
+            throw new BusinessRuleException("Import must be in PENDING status to reject");
         }
 
         importRecord.setStatus(GoodsImportStatus.REJECTED);
 
         importRepository.save(importRecord);
 
-        outboxPublisher.publish("GoodsImport", id, "goods.rejected", request.reason());
+        outboxPublisher.publish(
+            "GoodsImport",
+            id,
+            KafkaTopics.GOODS_REJECTED,
+            new GoodsRejectedEvent(id, importRecord.getWarehouseId(), request.reason()));
+    }
+
+    @Transactional(readOnly = true)
+    public List<GoodsImportResponse> listAll() {
+        return importRepository.findAll().stream()
+            .map(GoodsImportResponse::from)
+            .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<GoodsImportResponse> listByCustomer(UUID customerId) {
+        return importRepository.findByCustomerId(customerId).stream()
+            .map(GoodsImportResponse::from)
+            .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<GoodsImportResponse> listApproved() {
+        return importRepository.findByStatus(GoodsImportStatus.APPROVED).stream()
+            .map(GoodsImportResponse::from)
+            .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<GoodsItemResponse> listItemsByBooking(UUID bookingId) {
+        List<GoodsExcelImport> imports = importRepository.findByBookingId(bookingId);
+        return imports.stream()
+            .flatMap(imp -> itemRepository.findByGoodsImportId(imp.getId()).stream())
+            .map(GoodsItemResponse::from)
+            .toList();
     }
 }

@@ -3,7 +3,6 @@ package com.wms.identity.service;
 import com.wms.common.dto.PageResponse;
 import com.wms.common.enums.UserRole;
 import com.wms.common.enums.UserStatus;
-import com.wms.common.exception.BusinessRuleException;
 import com.wms.common.exception.EntityNotFoundException;
 import com.wms.common.exception.ResourceConflictException;
 import com.wms.identity.dto.staff.CreateStaffRequest;
@@ -19,6 +18,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,22 +28,24 @@ public class StaffService {
 
   private final StaffRepository staffRepository;
   private final UserRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
 
   @Transactional
   public StaffResponse create(CreateStaffRequest request) {
+    if (userRepository.existsByEmailAndDeletedAtIsNull(request.email())) {
+      throw new ResourceConflictException("Email already registered");
+    }
+
     User user =
-        userRepository
-            .findById(request.userId())
-            .orElseThrow(() -> new EntityNotFoundException("User", request.userId()));
-
-    if (user.getRole() != UserRole.STAFF) {
-      throw new BusinessRuleException("User role must be STAFF, but was " + user.getRole());
-    }
-
-    if (staffRepository.existsByUserId(request.userId())) {
-      throw new ResourceConflictException(
-          "Staff profile already exists for user: " + request.userId());
-    }
+        User.builder()
+            .email(request.email())
+            .password(passwordEncoder.encode(request.password()))
+            .firstName(request.firstName())
+            .lastName(request.lastName())
+            .role(UserRole.STAFF)
+            .status(UserStatus.ACTIVE)
+            .build();
+    userRepository.save(user);
 
     Staff staff =
         Staff.builder()

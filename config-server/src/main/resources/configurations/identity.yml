@@ -1,0 +1,46 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/identity_db
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  liquibase:
+    drop-first: false
+    enabled: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:your-email@gmail.com}
+    password: ${MAIL_PASSWORD:your-app-password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+wms:
+  production: ${WMS_PRODUCTION:false}
+
+jwt:
+  secret: ${JWT_SECRET:${JWT_SECRET_DEV:dev-only-secret-key-min-32-chars!!}}
+  access-exp: 900000
+  refresh-exp: 604800000
+
+super-admin:
+  email: ${SUPER_ADMIN_EMAIL:${SUPER_ADMIN_EMAIL_DEV:admin@wms.com}}
+  password: ${SUPER_ADMIN_PASSWORD:${SUPER_ADMIN_PASSWORD_DEV:Admin@123456}}
+  first-name: ${SUPER_ADMIN_FIRST_NAME:Super}
+  last-name: ${SUPER_ADMIN_LAST_NAME:Admin}
+
+app:
+  base-url: http://localhost:8080
+  confirmation:
+    token-validity-hours: 24

@@ -1,10 +1,14 @@
 package com.wms.delivery.controller;
 
+import com.wms.common.security.UserContextHolder;
+import com.wms.delivery.dto.delivery.AddDeliveryItemRequest;
+import com.wms.delivery.dto.delivery.CreateDeliveryRequest;
 import com.wms.delivery.service.DeliveryRequestService;
-import java.math.BigDecimal;
-import java.time.LocalDate;
+import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,32 +19,23 @@ public class DeliveryRequestController {
   private final DeliveryRequestService service;
 
   @PostMapping
-  public UUID create(
-      @RequestParam UUID bookingId,
-      @RequestParam String address,
-      @RequestParam String city,
-      @RequestParam String country,
-      @RequestParam String requestedDate) {
-    return service.createRequest(
-        bookingId, getCustomerId(), address, city, country, LocalDate.parse(requestedDate));
+  public ResponseEntity<UUID> create(@Valid @RequestBody CreateDeliveryRequest request) {
+    UUID customerId = UserContextHolder.get().userId();
+    UUID id =
+        service.createRequest(
+            request.bookingId(),
+            customerId,
+            request.address(),
+            request.city(),
+            request.country(),
+            request.requestedDate());
+    return ResponseEntity.status(HttpStatus.CREATED).body(id);
   }
 
   @PostMapping("/{id}/items")
-  public void addItem(
-      @PathVariable UUID id, @RequestParam UUID goodsItemId, @RequestParam BigDecimal qty) {
-    service.addItem(id, goodsItemId, qty);
-  }
-
-  @PostMapping("/items/{itemId}/pick")
-  public void pickItem(@PathVariable UUID itemId, @RequestParam BigDecimal qty) {
-    service.pickItem(itemId, getStaffId(), qty);
-  }
-
-  private UUID getCustomerId() {
-    return UUID.randomUUID();
-  }
-
-  private UUID getStaffId() {
-    return UUID.randomUUID();
+  public ResponseEntity<Void> addItem(
+      @PathVariable UUID id, @Valid @RequestBody AddDeliveryItemRequest request) {
+    service.addItem(id, request.goodsItemId(), request.qty());
+    return ResponseEntity.ok().build();
   }
 }

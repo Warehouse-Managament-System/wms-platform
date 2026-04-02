@@ -5,6 +5,7 @@ import com.stripe.model.checkout.Session;
 import com.wms.common.enums.BookingStatus;
 import com.wms.common.enums.InvoiceStatus;
 import com.wms.common.enums.PaymentStatus;
+import com.wms.common.event.KafkaTopics;
 import com.wms.common.event.PaymentFailedEvent;
 import com.wms.common.event.PaymentSuccessEvent;
 import com.wms.common.exception.BusinessRuleException;
@@ -111,7 +112,7 @@ public class PaymentService {
     outboxPublisher.publish(
         "Payment",
         payment.getId(),
-        "payment.success",
+        KafkaTopics.PAYMENT_SUCCESS,
         new PaymentSuccessEvent(
             invoiceId, invoice.getCustomerId(), payment.getAmount(), payment.getStripePaymentId()));
   }
@@ -134,7 +135,7 @@ public class PaymentService {
     outboxPublisher.publish(
         "Payment",
         payment.getId(),
-        "payment.failed",
+        KafkaTopics.PAYMENT_FAILED,
         new PaymentFailedEvent(
             invoiceId, payment.getInvoice().getCustomerId(), payment.getFailureReason()));
   }

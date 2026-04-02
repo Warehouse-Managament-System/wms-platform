@@ -1,0 +1,40 @@
+server:
+  port: 8080
+
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: identity
+          uri: lb://identity
+          predicates:
+            - Path=/identity/**
+          filters:
+            - StripPrefix=1
+        - id: inventory
+          uri: lb://inventory
+          predicates:
+            - Path=/inventory/**
+          filters:
+            - StripPrefix=1
+        - id: reservation
+          uri: lb://reservation
+          predicates:
+            - Path=/reservation/**
+          filters:
+            - StripPrefix=1
+        - id: delivery
+          uri: lb://delivery
+          predicates:
+            - Path=/delivery/**
+          filters:
+            - StripPrefix=1
+        - id: platform
+          uri: lb://platform
+          predicates:
+            - Path=/platform/**
+          filters:
+            - StripPrefix=1
+
+jwt:
+  secret: ${JWT_SECRET:${JWT_SECRET_DEV:dev-only-secret-key-min-32-chars!!}}

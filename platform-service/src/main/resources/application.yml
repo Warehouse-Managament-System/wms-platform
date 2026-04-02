@@ -1,9 +1,10 @@
-server:
-  port: 8087
-
 spring:
   application:
     name: platform
+  config:
+    import: optional:configserver:http://localhost:8888
+
+# Local fallback — used when config server is unavailable
   datasource:
     url: jdbc:postgresql://localhost:5437/platform_db
     username: postgres
@@ -27,6 +28,23 @@ spring:
     port: ${MAIL_PORT:587}
     username: ${MAIL_USERNAME:}
     password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+server:
+  port: 8087
+
+wms:
+  email:
+    enabled: ${WMS_EMAIL_ENABLED:false}
 
 eureka:
   client:

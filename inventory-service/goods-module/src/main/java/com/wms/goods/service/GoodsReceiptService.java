@@ -1,8 +1,12 @@
 package com.wms.goods.service;
 
+import com.wms.common.dto.GoodsItemAvailabilityResponse;
 import com.wms.common.enums.GoodsItemStatus;
 import com.wms.common.enums.ReceiptCondition;
 import com.wms.common.event.GoodsDiscrepancyEvent;
+import com.wms.common.event.KafkaTopics;
+import com.wms.common.exception.EntityNotFoundException;
+import com.wms.common.exception.ResourceConflictException;
 import com.wms.common.outbox.OutboxPublisher;
 import com.wms.goods.dto.receipt.*;
 import com.wms.goods.entity.*;
@@ -42,17 +46,17 @@ public class GoodsReceiptService {
     public void recordItem(UUID receiptId, UUID staffId, RecordReceiptItemRequest request) {
 
         GoodsReceipt receipt = receiptRepository.findById(receiptId)
-            .orElseThrow(() -> new RuntimeException("Receipt not found"));
+            .orElseThrow(() -> new EntityNotFoundException("GoodsReceipt", receiptId));
 
         GoodsItem item = goodsItemRepository
             .findByIdAndDeletedAtIsNull(request.goodsItemId())
-            .orElseThrow(() -> new RuntimeException("Goods item not found"));
+            .orElseThrow(() -> new EntityNotFoundException("GoodsItem", request.goodsItemId()));
 
         boolean exists = receiptItemRepository
             .existsByGoodsReceiptIdAndGoodsItemId(receiptId, request.goodsItemId());
 
         if (exists) {
-            throw new RuntimeException("Item already recorded for this receipt");
+            throw new ResourceConflictException("Item already recorded for this receipt");
         }
 
         GoodsReceiptItem receiptItem = GoodsReceiptItem.builder()
@@ -85,7 +89,7 @@ public class GoodsReceiptService {
             outboxPublisher.publish(
                 "GoodsReceipt",
                 receiptId,
-                "goods.discrepancy",
+                KafkaTopics.GOODS_DISCREPANCY,
                 new GoodsDiscrepancyEvent(
                     importId,
                     null, // or warehouseId if you have it
@@ -96,12 +100,16 @@ public class GoodsReceiptService {
     }
 
     @Transactional(readOnly = true)
-    public GoodsAvailableQtyResponse getAvailableQty(UUID goodsItemId) {
+    public GoodsItemAvailabilityResponse getAvailability(UUID goodsItemId) {
 
         GoodsItem item = goodsItemRepository
             .findByIdAndDeletedAtIsNull(goodsItemId)
-            .orElseThrow(() -> new RuntimeException("Goods item not found"));
+            .orElseThrow(() -> new EntityNotFoundException("GoodsItem", goodsItemId));
 
-        return new GoodsAvailableQtyResponse(item.getQuantity());
+        boolean available = item.getStatus() == GoodsItemStatus.IN_WAREHOUSE
+            && item.getQuantity().compareTo(BigDecimal.ZERO) > 0;
+
+        return new GoodsItemAvailabilityResponse(
+            item.getId(), available, item.getStatus().name());
     }
 }

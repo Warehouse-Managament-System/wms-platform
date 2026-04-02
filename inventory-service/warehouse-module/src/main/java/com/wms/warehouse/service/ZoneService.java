@@ -151,4 +151,18 @@ public class ZoneService {
 
     return ZoneResponse.from(zoneRepository.save(zone));
   }
+
+  @Transactional
+  public void delete(UUID zoneId, UUID ownerId) {
+    Zone zone =
+        zoneRepository
+            .findById(zoneId)
+            .orElseThrow(() -> new EntityNotFoundException("Zone", zoneId));
+
+    if (!zone.getWarehouse().getOwnerId().equals(ownerId)) {
+      throw new BusinessRuleException("You do not own this zone");
+    }
+
+    zoneRepository.delete(zone);
+  }
 }

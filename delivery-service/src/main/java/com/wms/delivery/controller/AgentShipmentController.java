@@ -3,9 +3,11 @@ package com.wms.delivery.controller;
 import com.wms.common.security.UserContextHolder;
 import com.wms.delivery.dto.shipment.AddCheckpointRequest;
 import com.wms.delivery.dto.shipment.ShipmentCheckpointResponse;
+import com.wms.delivery.dto.shipment.ShipmentResponse;
 import com.wms.delivery.dto.shipment.ShipmentTrackingResponse;
 import com.wms.delivery.service.ShipmentService;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +19,12 @@ import org.springframework.web.bind.annotation.*;
 public class AgentShipmentController {
 
   private final ShipmentService shipmentService;
+
+  @GetMapping
+  public ResponseEntity<List<ShipmentResponse>> listOwn() {
+    UUID agentId = UserContextHolder.get().userId();
+    return ResponseEntity.ok(shipmentService.listByAgent(agentId));
+  }
 
   @PostMapping("/{id}/checkpoints")
   public ResponseEntity<ShipmentCheckpointResponse> addCheckpoint(
