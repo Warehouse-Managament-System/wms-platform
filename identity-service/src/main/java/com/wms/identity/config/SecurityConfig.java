@@ -33,7 +33,12 @@ public class SecurityConfig {
                     // Public
                     .requestMatchers("/api/v1/auth/**")
                     .permitAll()
-                    .requestMatchers("/actuator/health", "/actuator/info")
+                    .requestMatchers(
+                        "/actuator/health",
+                        "/actuator/info",
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**")
                     .permitAll()
 
                     // Super Admin

@@ -8,4 +8,4 @@ dependencies {
     implementation(libs.spring.cloud.starter.circuitbreaker.resilience4j)
     implementation(libs.stripe.java)
     implementation("org.springframework.boot:spring-boot-starter-liquibase")
-}
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2")}

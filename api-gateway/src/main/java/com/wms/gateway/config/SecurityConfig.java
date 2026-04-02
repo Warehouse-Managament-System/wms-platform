@@ -24,7 +24,13 @@ public class SecurityConfig {
     return http.csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers("/actuator/health", "/actuator/info", "/actuator/prometheus")
+                auth.requestMatchers(
+                        "/actuator/health",
+                        "/actuator/info",
+                        "/actuator/prometheus",
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**")
                     .permitAll()
                     .requestMatchers("/identity/api/v1/auth/**")
                     .permitAll()

@@ -1,0 +1,110 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-04-02-create-goods-excel-imports
+      author: gulay
+      changes:
+        - createTable:
+            tableName: goods_excel_imports
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: booking_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: customer_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: warehouse_id
+                  type: UUID
+
+              - column:
+                  name: file_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: total_rows
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: success_rows
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: failed_rows
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: error_file_url
+                  type: VARCHAR(500)
+                  defaultValue: ""
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: arrival_deadline
+                  type: TIMESTAMP
+
+              - column:
+                  name: approved_by
+                  type: UUID
+
+              - column:
+                  name: approved_at
+                  type: TIMESTAMP
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+        - createIndex:
+            tableName: goods_excel_imports
+            indexName: idx_goods_excel_imports_booking_id
+            columns:
+              - column:
+                  name: booking_id
+
+        - createIndex:
+            tableName: goods_excel_imports
+            indexName: idx_goods_excel_imports_customer_id
+            columns:
+              - column:
+                  name: customer_id
+
+        - createIndex:
+            tableName: goods_excel_imports
+            indexName: idx_goods_excel_imports_status
+            columns:
+              - column:
+                  name: status

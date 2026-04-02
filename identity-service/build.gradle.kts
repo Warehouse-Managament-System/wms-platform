@@ -6,4 +6,4 @@ dependencies {
     runtimeOnly(libs.jjwt.jackson)
     testImplementation(libs.spring.security.test)
     implementation("org.springframework.boot:spring-boot-starter-liquibase")
-}
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2")}

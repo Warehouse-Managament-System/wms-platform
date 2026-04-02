@@ -1,0 +1,39 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-04-03-create-goods-receipts
+      author: Gulay
+      changes:
+        - createTable:
+            tableName: goods_receipts
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: booking_id
+                  type: uuid
+                  constraints:
+                    nullable: true
+              - column:
+                  name: received_by
+                  type: uuid
+                  constraints:
+                    nullable: true
+              - column:
+                  name: inbound_carrier
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: received_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: notes
+                  type: text
+                  constraints:
+                    nullable: true

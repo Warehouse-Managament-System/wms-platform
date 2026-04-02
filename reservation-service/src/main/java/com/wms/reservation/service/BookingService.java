@@ -1,5 +1,6 @@
 package com.wms.reservation.service;
 
+import com.wms.common.dto.PageResponse;
 import com.wms.common.dto.RoomAvailabilityResponse;
 import com.wms.common.enums.BookingStatus;
 import com.wms.common.enums.BookingType;
@@ -8,10 +9,12 @@ import com.wms.common.exception.AvailabilityException;
 import com.wms.common.exception.BusinessRuleException;
 import com.wms.common.exception.EntityNotFoundException;
 import com.wms.common.outbox.OutboxPublisher;
+import com.wms.reservation.dto.BookingResponse;
 import com.wms.reservation.entity.Booking;
 import com.wms.reservation.feign.InventoryClient;
 import com.wms.reservation.repository.BookingRepository;
 import java.time.Duration;
+import java.time.ZoneOffset;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -95,7 +98,7 @@ public class BookingService {
   }
 
   @Transactional
-  public Booking confirm(UUID id) {
+  public BookingResponse confirm(UUID id, UUID ownerId) {
     Booking booking =
         bookingRepository
             .findByIdAndDeletedAtIsNull(id)
@@ -118,9 +121,73 @@ public class BookingService {
             booking.getId(),
             booking.getCustomerId(),
             booking.getRoomId(),
-            booking.getStartDate().atStartOfDay().toInstant(java.time.ZoneOffset.UTC),
-            booking.getEndDate().atStartOfDay().toInstant(java.time.ZoneOffset.UTC)));
+            booking.getStartDate().atStartOfDay().toInstant(ZoneOffset.UTC),
+            booking.getEndDate().atStartOfDay().toInstant(ZoneOffset.UTC)));
 
-    return booking;
+    return BookingResponse.from(booking);
+  }
+
+  @Transactional
+  public Booking reject(UUID id, UUID ownerId) {
+    Booking booking =
+        bookingRepository
+            .findByIdAndDeletedAtIsNull(id)
+            .orElseThrow(() -> new EntityNotFoundException("Booking", id));
+
+    if (booking.getStatus() != BookingStatus.PENDING) {
+      throw new BusinessRuleException("Only pending bookings can be rejected");
+    }
+
+    booking.setStatus(BookingStatus.REJECTED);
+    return bookingRepository.save(booking);
+  }
+
+  @Transactional(readOnly = true)
+  public PageResponse<BookingResponse> listByCustomer(
+      UUID customerId, BookingStatus status, org.springframework.data.domain.Pageable pageable) {
+    var page =
+        (status == null)
+            ? bookingRepository.findByCustomerId(customerId, pageable)
+            : bookingRepository.findByCustomerIdAndStatus(customerId, status, pageable);
+
+    return PageResponse.from(page.map(BookingResponse::from));
+  }
+
+  @Transactional(readOnly = true)
+  public BookingResponse getById(UUID id, UUID customerId) {
+    Booking booking =
+        bookingRepository
+            .findByIdAndCustomerIdAndDeletedAtIsNull(id, customerId)
+            .orElseThrow(() -> new EntityNotFoundException("Booking", id));
+
+    return BookingResponse.from(booking);
+  }
+
+  @Transactional
+  public BookingResponse cancel(UUID id, UUID customerId) {
+    Booking booking =
+        bookingRepository
+            .findByIdAndCustomerIdAndDeletedAtIsNull(id, customerId)
+            .orElseThrow(() -> new EntityNotFoundException("Booking", id));
+
+    if (booking.getStatus() != BookingStatus.PENDING) {
+      throw new BusinessRuleException("Only pending bookings can be cancelled");
+    }
+
+    booking.setStatus(BookingStatus.CANCELLED);
+    booking = bookingRepository.save(booking);
+
+    return BookingResponse.from(booking);
+  }
+
+  @Transactional(readOnly = true)
+  public PageResponse<BookingResponse> listByWarehouse(
+      UUID warehouseId, BookingStatus status, org.springframework.data.domain.Pageable pageable) {
+    var page =
+        (status == null)
+            ? bookingRepository.findByWarehouseId(warehouseId, pageable)
+            : bookingRepository.findByWarehouseIdAndStatus(warehouseId, status, pageable);
+
+    return PageResponse.from(page.map(BookingResponse::from));
   }
 }

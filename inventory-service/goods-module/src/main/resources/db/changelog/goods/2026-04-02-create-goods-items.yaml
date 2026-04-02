@@ -1,0 +1,77 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-04-02-create-goods-items
+      author: Gulay
+      changes:
+        - createTable:
+            tableName: goods_items
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: goods_import_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sku
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: barcode
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: quantity
+                  type: NUMERIC(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: TIMESTAMPTZ
+                  constraints:
+                    nullable: true
+              - column:
+                  name: created_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMPTZ
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+
+        # Foreign key to goods_excel_imports
+        - addForeignKeyConstraint:
+            baseTableName: goods_items
+            baseColumnNames: goods_import_id
+            referencedTableName: goods_excel_imports
+            referencedColumnNames: id
+            constraintName: fk_goods_items_goods_imports
+
+        # Indexes
+        - createIndex:
+            indexName: idx_goods_items_goods_import_id
+            tableName: goods_items
+            columns:
+              - column:
+                  name: goods_import_id

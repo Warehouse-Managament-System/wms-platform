@@ -9,19 +9,12 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
 @EnableFeignClients
-@ComponentScan(
-    basePackages = {
-      "com.wms.inventory",
-      "com.wms.common.exception",
-      "com.wms.common.security",
-      "com.wms",
-      "com.wms.common.outbox"
-    })
-@EntityScan(basePackages = {"com.wms.inventory.entity", "com.wms.common.entity"})
-@EnableJpaRepositories(
-    basePackages = {"com.wms.inventory.repository", "com.wms", "com.wms.common.outbox"})
+@ComponentScan(basePackages = "com.wms")
+@EntityScan(basePackages = "com.wms")
+@EnableJpaRepositories(basePackages = "com.wms")
 public class InventoryApplication {
-  static void main(String[] args) {
+
+  public static void main(String[] args) {
     SpringApplication.run(InventoryApplication.class, args);
   }
 }

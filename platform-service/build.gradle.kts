@@ -4,4 +4,4 @@ dependencies {
     implementation(libs.spring.batch.core)
     implementation(libs.spring.boot.starter.quartz)
     implementation("org.springframework.boot:spring-boot-starter-liquibase")
-}
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2")}

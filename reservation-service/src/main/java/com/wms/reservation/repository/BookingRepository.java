@@ -6,6 +6,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
@@ -23,4 +25,15 @@ public interface BookingRepository
 
   boolean existsByZoneIdAndStatusInAndDeletedAtIsNull(
       UUID zoneId, Collection<BookingStatus> statuses);
+
+  Page<Booking> findByCustomerId(UUID customerId, Pageable pageable);
+
+  Page<Booking> findByCustomerIdAndStatus(UUID customerId, BookingStatus status, Pageable pageable);
+
+  Optional<Booking> findByIdAndCustomerIdAndDeletedAtIsNull(UUID id, UUID customerId);
+
+  Page<Booking> findByWarehouseId(UUID warehouseId, Pageable pageable);
+
+  Page<Booking> findByWarehouseIdAndStatus(
+      UUID warehouseId, BookingStatus status, Pageable pageable);
 }
