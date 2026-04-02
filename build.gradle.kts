@@ -104,6 +104,22 @@ configure(subprojects.filter { it.name in eurekaClientProjects }) {
     }
 }
 
+val configClientProjects =
+    setOf(
+        "identity-service",
+        "inventory-service",
+        "reservation-service",
+        "delivery-service",
+        "platform-service",
+        "api-gateway",
+    )
+
+configure(subprojects.filter { it.name in configClientProjects }) {
+    dependencies {
+        implementation(rootProject.libs.spring.cloud.starter.config.client)
+    }
+}
+
 val libraryProjects =
     setOf(
         "wms-common",

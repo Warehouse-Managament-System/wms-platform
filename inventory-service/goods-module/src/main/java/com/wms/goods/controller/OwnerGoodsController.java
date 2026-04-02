@@ -1,13 +1,16 @@
 package com.wms.goods.controller;
 
+import com.wms.common.security.UserContextHolder;
 import com.wms.goods.dto.ApproveGoodsImportRequest;
+import com.wms.goods.dto.GoodsImportResponse;
 import com.wms.goods.dto.RejectGoodsImportRequest;
 import com.wms.goods.service.GoodsImportService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-
+import java.util.List;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/owner/goods")
@@ -16,12 +19,18 @@ public class OwnerGoodsController {
 
     private final GoodsImportService service;
 
+    @GetMapping("/imports")
+    public ResponseEntity<List<GoodsImportResponse>> listImports() {
+        return ResponseEntity.ok(service.listAll());
+    }
+
     @PatchMapping("/imports/{id}/approve")
     public void approve(
         @PathVariable UUID id,
         @RequestBody @Valid ApproveGoodsImportRequest request
     ) {
-        service.approve(id, getOwnerId(), request);
+        UUID ownerId = UserContextHolder.get().userId();
+        service.approve(id, ownerId, request);
     }
 
     @PatchMapping("/imports/{id}/reject")
@@ -29,10 +38,7 @@ public class OwnerGoodsController {
         @PathVariable UUID id,
         @RequestBody @Valid RejectGoodsImportRequest request
     ) {
-        service.reject(id, getOwnerId(), request);
-    }
-
-    private UUID getOwnerId() {
-        return UUID.randomUUID();
+        UUID ownerId = UserContextHolder.get().userId();
+        service.reject(id, ownerId, request);
     }
 }

@@ -1,0 +1,50 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-04-02-create-goods-receipt-items-table
+      author: Ali Ramazanov
+      changes:
+        - createTable:
+            tableName: goods_receipt_items
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_goods_receipt_items
+                    nullable: false
+              - column:
+                  name: goods_receipt_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: goods_item_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expected_qty
+                  type: DECIMAL(10,2)
+              - column:
+                  name: received_qty
+                  type: DECIMAL(10,2)
+              - column:
+                  name: condition
+                  type: VARCHAR(20)
+              - column:
+                  name: notes
+                  type: TEXT
+        - addForeignKeyConstraint:
+            constraintName: fk_receipt_items_receipt
+            baseTableName: goods_receipt_items
+            baseColumnNames: goods_receipt_id
+            referencedTableName: goods_receipts
+            referencedColumnNames: id
+        - addForeignKeyConstraint:
+            constraintName: fk_receipt_items_goods_item
+            baseTableName: goods_receipt_items
+            baseColumnNames: goods_item_id
+            referencedTableName: goods_items
+            referencedColumnNames: id

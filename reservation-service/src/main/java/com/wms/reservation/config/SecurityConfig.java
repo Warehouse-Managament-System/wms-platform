@@ -40,6 +40,10 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/api/v1/internal/**")
                     .permitAll()
+                    .requestMatchers("/api/v1/customer/**")
+                    .hasRole("CUSTOMER")
+                    .requestMatchers("/api/v1/owner/**")
+                    .hasAnyRole("WAREHOUSE_OWNER", "SUPER_ADMIN")
                     .anyRequest()
                     .authenticated())
         .sessionManagement(

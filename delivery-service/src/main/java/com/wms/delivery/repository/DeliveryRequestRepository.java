@@ -1,5 +1,6 @@
 package com.wms.delivery.repository;
 
+import com.wms.common.enums.DeliveryStatus;
 import com.wms.delivery.entity.DeliveryRequest;
 import jakarta.persistence.LockModeType;
 import java.util.List;
@@ -17,6 +18,8 @@ public interface DeliveryRequestRepository
   List<DeliveryRequest> findByCustomerId(UUID customerId);
 
   List<DeliveryRequest> findByBookingId(UUID bookingId);
+
+  List<DeliveryRequest> findByStatus(DeliveryStatus status);
 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("SELECT dr FROM DeliveryRequest dr WHERE dr.id = :id")

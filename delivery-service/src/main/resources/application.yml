@@ -1,9 +1,10 @@
-server:
-  port: 8085
-
 spring:
   application:
     name: delivery
+  config:
+    import: optional:configserver:http://localhost:8888
+
+# Local fallback — used when config server is unavailable
   datasource:
     url: jdbc:postgresql://localhost:5436/delivery_db
     username: postgres
@@ -22,6 +23,9 @@ spring:
     bootstrap-servers: localhost:9092
     consumer:
       group-id: ${spring.application.name}-group
+
+server:
+  port: 8085
 
 eureka:
   client:

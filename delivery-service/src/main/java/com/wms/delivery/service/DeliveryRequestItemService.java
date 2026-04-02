@@ -1,11 +1,14 @@
 package com.wms.delivery.service;
 
+import com.wms.common.enums.DeliveryStatus;
 import com.wms.common.exception.BusinessRuleException;
 import com.wms.common.exception.EntityNotFoundException;
 import com.wms.delivery.dto.delivery.DeliveryRequestItemResponse;
 import com.wms.delivery.dto.delivery.PickItemRequest;
+import com.wms.delivery.entity.DeliveryRequest;
 import com.wms.delivery.entity.DeliveryRequestItem;
 import com.wms.delivery.repository.DeliveryRequestItemRepository;
+import com.wms.delivery.repository.DeliveryRequestRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -19,10 +22,20 @@ import org.springframework.transaction.annotation.Transactional;
 public class DeliveryRequestItemService {
 
   private final DeliveryRequestItemRepository itemRepository;
+  private final DeliveryRequestRepository deliveryRequestRepository;
 
   @Transactional
   public DeliveryRequestItemResponse pickItem(
-      UUID deliveryRequestId, UUID agentId, PickItemRequest request) {
+      UUID deliveryRequestId, UUID staffId, PickItemRequest request) {
+    DeliveryRequest deliveryRequest =
+        deliveryRequestRepository
+            .findById(deliveryRequestId)
+            .orElseThrow(() -> new EntityNotFoundException("DeliveryRequest", deliveryRequestId));
+
+    if (deliveryRequest.getStatus() != DeliveryStatus.PICKING) {
+      throw new BusinessRuleException("Delivery request must be in PICKING status to pick items");
+    }
+
     DeliveryRequestItem item =
         itemRepository
             .findByDeliveryRequestIdAndGoodsItemId(deliveryRequestId, request.goodsItemId())
@@ -35,7 +48,7 @@ public class DeliveryRequestItemService {
     }
 
     item.setPickedQty(newPickedQty);
-    item.setPickedBy(agentId);
+    item.setPickedBy(staffId);
     item.setPickedAt(Instant.now());
 
     itemRepository.save(item);

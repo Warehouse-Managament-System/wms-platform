@@ -1,7 +1,9 @@
 package com.wms.identity.service;
 
+import com.wms.common.dto.PageResponse;
 import com.wms.common.enums.UserRole;
 import com.wms.common.enums.UserStatus;
+import com.wms.common.event.KafkaTopics;
 import com.wms.common.event.OwnerApprovedEvent;
 import com.wms.common.event.OwnerRejectedEvent;
 import com.wms.common.exception.EntityNotFoundException;
@@ -14,10 +16,12 @@ import com.wms.identity.entity.User;
 import com.wms.identity.entity.WarehouseOwner;
 import com.wms.identity.repository.UserRepository;
 import com.wms.identity.repository.WarehouseOwnerRepository;
+import com.wms.identity.specification.WarehouseOwnerSpecification;
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,8 +76,28 @@ public class WarehouseOwnerService {
   }
 
   @Transactional(readOnly = true)
-  public List<WarehouseOwnerResponse> getAll() {
-    return repository.findAllActive().stream().map(WarehouseOwnerResponse::from).toList();
+  public PageResponse<WarehouseOwnerResponse> search(
+      String search, UserStatus status, Instant createdFrom, Instant createdTo, Pageable pageable) {
+
+    Specification<WarehouseOwner> spec = WarehouseOwnerSpecification.isNotDeleted();
+
+    if (search != null && !search.isBlank()) {
+      spec = spec.and(WarehouseOwnerSpecification.searchByNameOrCompany(search));
+    }
+
+    if (status != null) {
+      spec = spec.and(WarehouseOwnerSpecification.hasUserStatus(status));
+    }
+
+    if (createdFrom != null) {
+      spec = spec.and(WarehouseOwnerSpecification.createdAfter(createdFrom));
+    }
+
+    if (createdTo != null) {
+      spec = spec.and(WarehouseOwnerSpecification.createdBefore(createdTo));
+    }
+
+    return PageResponse.from(repository.findAll(spec, pageable).map(WarehouseOwnerResponse::from));
   }
 
   @Transactional
@@ -98,7 +122,7 @@ public class WarehouseOwnerService {
     outboxPublisher.publish(
         "WarehouseOwner",
         owner.getId(),
-        "owner.approved",
+        KafkaTopics.OWNER_APPROVED,
         new OwnerApprovedEvent(user.getId(), user.getEmail(), owner.getCompanyName()));
 
     return WarehouseOwnerResponse.from(owner);
@@ -125,7 +149,7 @@ public class WarehouseOwnerService {
     outboxPublisher.publish(
         "WarehouseOwner",
         owner.getId(),
-        "owner.rejected",
+        KafkaTopics.OWNER_REJECTED,
         new OwnerRejectedEvent(user.getId(), user.getEmail(), reason));
 
     return WarehouseOwnerResponse.from(owner);

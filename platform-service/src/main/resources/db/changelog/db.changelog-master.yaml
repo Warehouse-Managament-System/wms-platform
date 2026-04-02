@@ -77,3 +77,11 @@ databaseChangeLog:
             columns:
               - column:
                   name: created_at
+
+  # Notification tables
+  - include:
+      file: db/changelog/notification/2026-04-02-create-notifications-table.yaml
+
+  # Audit tables
+  - include:
+      file: db/changelog/audit/2026-04-02-create-audit-logs-table.yaml

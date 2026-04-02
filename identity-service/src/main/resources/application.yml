@@ -1,9 +1,10 @@
-server:
-  port: 8081
-
 spring:
   application:
     name: identity
+  config:
+    import: optional:configserver:http://localhost:8888
+
+# Local fallback — used when config server is unavailable
   datasource:
     url: jdbc:postgresql://localhost:5433/identity_db
     username: postgres
@@ -17,7 +18,7 @@ spring:
       hibernate:
         format_sql: true
   liquibase:
-    drop-first: true # TODO: set to false before production
+    drop-first: true
     enabled: true
     change-log: classpath:db/changelog/db.changelog-master.yaml
   kafka:
@@ -39,6 +40,9 @@ spring:
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000
+
+server:
+  port: 8081
 
 wms:
   production: ${WMS_PRODUCTION:false}

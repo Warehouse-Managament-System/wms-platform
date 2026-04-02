@@ -102,3 +102,13 @@ databaseChangeLog:
   - include:
       file: db/changelog/room/2026-03-27-create-room-categories-table.yaml
 
+  # Goods tables
+  - include:
+      file: db/changelog/goods/2026-04-02-create-goods-excel-imports-table.yaml
+  - include:
+      file: db/changelog/goods/2026-04-02-create-goods-items-table.yaml
+  - include:
+      file: db/changelog/goods/2026-04-02-create-goods-receipts-table.yaml
+  - include:
+      file: db/changelog/goods/2026-04-02-create-goods-receipt-items-table.yaml
+

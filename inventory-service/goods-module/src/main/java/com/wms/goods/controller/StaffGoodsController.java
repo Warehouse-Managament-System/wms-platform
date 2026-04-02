@@ -1,22 +1,33 @@
 package com.wms.goods.controller;
 
+import com.wms.common.security.UserContextHolder;
+import com.wms.goods.dto.GoodsImportResponse;
 import com.wms.goods.dto.receipt.*;
+import com.wms.goods.service.GoodsImportService;
 import com.wms.goods.service.GoodsReceiptService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-
+import java.util.List;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/staff/goods")
 @RequiredArgsConstructor
 public class StaffGoodsController {
 
+    private final GoodsImportService importService;
     private final GoodsReceiptService service;
+
+    @GetMapping("/imports")
+    public ResponseEntity<List<GoodsImportResponse>> listApprovedImports() {
+        return ResponseEntity.ok(importService.listApproved());
+    }
 
     @PostMapping("/receipts")
     public GoodsReceiptResponse createReceipt(@RequestBody CreateGoodsReceiptRequest request) {
-        return service.createReceipt(getStaffId(), request);
+        UUID staffId = UserContextHolder.get().userId();
+        return service.createReceipt(staffId, request);
     }
 
     @PostMapping("/receipts/{receiptId}/items")
@@ -24,10 +35,7 @@ public class StaffGoodsController {
         @PathVariable UUID receiptId,
         @RequestBody RecordReceiptItemRequest request
     ) {
-        service.recordItem(receiptId, getStaffId(), request);
-    }
-
-    private UUID getStaffId() {
-        return UUID.randomUUID(); // replace with UserContextHolder
+        UUID staffId = UserContextHolder.get().userId();
+        service.recordItem(receiptId, staffId, request);
     }
 }

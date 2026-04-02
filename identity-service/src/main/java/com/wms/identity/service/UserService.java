@@ -5,6 +5,7 @@ import com.wms.common.enums.UserRole;
 import com.wms.common.enums.UserStatus;
 import com.wms.common.exception.EntityNotFoundException;
 import com.wms.identity.dto.user.UpdateUserProfileRequest;
+import com.wms.identity.dto.user.UpdateUserStatusRequest;
 import com.wms.identity.dto.user.UserResponse;
 import com.wms.identity.entity.User;
 import com.wms.identity.repository.UserRepository;
@@ -84,6 +85,13 @@ public class UserService {
     }
 
     return PageResponse.from(userRepository.findAll(spec, pageable).map(UserResponse::from));
+  }
+
+  @Transactional
+  public UserResponse updateStatus(UUID id, UpdateUserStatusRequest request) {
+    User user = findActiveOrThrow(id);
+    user.setStatus(request.status());
+    return UserResponse.from(userRepository.save(user));
   }
 
   @Transactional

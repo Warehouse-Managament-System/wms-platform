@@ -5,9 +5,11 @@ import com.wms.common.enums.DeliveryStatus;
 import com.wms.common.enums.ShipmentStatus;
 import com.wms.common.event.DeliveryClaimedEvent;
 import com.wms.common.event.DeliveryReadyEvent;
+import com.wms.common.event.KafkaTopics;
 import com.wms.common.exception.BusinessRuleException;
 import com.wms.common.exception.EntityNotFoundException;
 import com.wms.common.outbox.OutboxPublisher;
+import com.wms.delivery.dto.shipment.ShipmentResponse;
 import com.wms.delivery.entity.DeliveryNotification;
 import com.wms.delivery.entity.DeliveryRequest;
 import com.wms.delivery.entity.Shipment;
@@ -58,13 +60,13 @@ public class AgentClaimService {
     outboxPublisher.publish(
         "DeliveryRequest",
         deliveryRequestId,
-        "delivery.ready",
+        KafkaTopics.DELIVERY_READY,
         new DeliveryReadyEvent(
             deliveryRequestId, deliveryRequest.getBookingId(), deliveryRequest.getCustomerId()));
   }
 
   @Transactional
-  public void claim(UUID deliveryRequestId, UUID agentId) {
+  public ShipmentResponse claim(UUID deliveryRequestId, UUID agentId) {
     DeliveryRequest deliveryRequest =
         deliveryRequestRepository
             .findByIdForUpdate(deliveryRequestId)
@@ -105,7 +107,9 @@ public class AgentClaimService {
     outboxPublisher.publish(
         "DeliveryRequest",
         deliveryRequestId,
-        "delivery.claimed",
-        new DeliveryClaimedEvent(deliveryRequestId, agentId));
+        KafkaTopics.DELIVERY_CLAIMED,
+        new DeliveryClaimedEvent(deliveryRequestId, agentId, trackingNumber));
+
+    return ShipmentResponse.from(shipment);
   }
 }

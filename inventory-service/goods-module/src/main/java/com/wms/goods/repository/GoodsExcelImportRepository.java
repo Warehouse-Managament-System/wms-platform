@@ -1,5 +1,6 @@
 package com.wms.goods.repository;
 
+import com.wms.common.enums.GoodsImportStatus;
 import com.wms.goods.entity.GoodsExcelImport;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -9,4 +10,8 @@ import java.util.UUID;
 public interface GoodsExcelImportRepository extends JpaRepository<GoodsExcelImport, UUID> {
 
     List<GoodsExcelImport> findByCustomerId(UUID customerId);
+
+    List<GoodsExcelImport> findByStatus(GoodsImportStatus status);
+
+    List<GoodsExcelImport> findByBookingId(UUID bookingId);
 }
