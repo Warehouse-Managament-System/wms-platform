@@ -7,12 +7,15 @@ import com.wms.common.event.GoodsRejectedEvent;
 import com.wms.common.event.KafkaTopics;
 import com.wms.common.exception.BusinessRuleException;
 import com.wms.common.exception.EntityNotFoundException;
+import com.wms.common.exception.UnauthorizedException;
 import com.wms.goods.dto.ApproveGoodsImportRequest;
 import com.wms.goods.dto.GoodsItemResponse;
 import com.wms.goods.dto.RejectGoodsImportRequest;
 import com.wms.goods.dto.GoodsImportResponse;
 import com.wms.goods.entity.GoodsExcelImport;
 import com.wms.goods.entity.GoodsItem;
+import com.wms.goods.feign.BookingClient;
+import com.wms.goods.feign.dto.BookingStatusResponse;
 import com.wms.goods.repository.*;
 import com.wms.common.outbox.OutboxPublisher;
 import lombok.RequiredArgsConstructor;
@@ -32,13 +35,22 @@ public class GoodsImportService {
     private final GoodsItemRepository itemRepository;
     private final GoodsExcelParserService parserService;
     private final OutboxPublisher outboxPublisher;
+    private final BookingClient bookingClient;
 
     @Transactional
     public GoodsImportResponse upload(UUID bookingId, UUID customerId, String fileName, InputStream stream) {
 
+        BookingStatusResponse booking = fetchBookingOrThrow(bookingId);
+
+        if (!booking.customerId().equals(customerId)) {
+            throw new UnauthorizedException(
+                "Booking does not belong to the requesting customer");
+        }
+
         GoodsExcelImport importRecord = GoodsExcelImport.builder()
             .bookingId(bookingId)
             .customerId(customerId)
+            .warehouseId(booking.warehouseId())
             .fileName(fileName)
             .status(GoodsImportStatus.PENDING)
             .build();
@@ -139,5 +151,13 @@ public class GoodsImportService {
             .flatMap(imp -> itemRepository.findByGoodsImportId(imp.getId()).stream())
             .map(GoodsItemResponse::from)
             .toList();
+    }
+
+    private BookingStatusResponse fetchBookingOrThrow(UUID bookingId) {
+        try {
+            return bookingClient.getStatus(bookingId);
+        } catch (Exception ex) {
+            throw new EntityNotFoundException("Booking", bookingId);
+        }
     }
 }

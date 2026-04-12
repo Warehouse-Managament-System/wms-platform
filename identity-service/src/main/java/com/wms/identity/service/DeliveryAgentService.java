@@ -10,6 +10,7 @@ import com.wms.identity.dto.deliveryagent.DeliveryAgentResponse;
 import com.wms.identity.dto.deliveryagent.UpdateDeliveryAgentRequest;
 import com.wms.identity.entity.DeliveryAgent;
 import com.wms.identity.entity.User;
+import com.wms.identity.feign.WarehouseClient;
 import com.wms.identity.repository.DeliveryAgentRepository;
 import com.wms.identity.repository.UserRepository;
 import com.wms.identity.specification.DeliveryAgentSpecification;
@@ -29,6 +30,7 @@ public class DeliveryAgentService {
   private final DeliveryAgentRepository deliveryAgentRepository;
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
+  private final WarehouseClient warehouseClient;
 
   @Transactional
   public DeliveryAgentResponse create(CreateDeliveryAgentRequest request) {
@@ -40,6 +42,8 @@ public class DeliveryAgentService {
       throw new ResourceConflictException(
           "Delivery agent profile already exists with tax ID: " + request.taxId());
     }
+
+    verifyWarehouseExists(request.warehouseId());
 
     User user =
         User.builder()
@@ -125,6 +129,7 @@ public class DeliveryAgentService {
     DeliveryAgent agent = findByIdOrThrow(id);
 
     if (request.warehouseId() != null) {
+      verifyWarehouseExists(request.warehouseId());
       agent.setWarehouseId(request.warehouseId());
     }
 
@@ -156,5 +161,13 @@ public class DeliveryAgentService {
     return deliveryAgentRepository
         .findById(id)
         .orElseThrow(() -> new EntityNotFoundException("DeliveryAgent", id));
+  }
+
+  private void verifyWarehouseExists(UUID warehouseId) {
+    try {
+      warehouseClient.verifyExists(warehouseId);
+    } catch (Exception ex) {
+      throw new EntityNotFoundException("Warehouse", warehouseId);
+    }
   }
 }

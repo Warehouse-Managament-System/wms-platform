@@ -1,0 +1,34 @@
+# Build outputs — let the Docker builder produce its own
+**/build/
+**/.gradle/
+.gradle/
+**/out/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Logs and temp
+*.log
+*.tmp
+**/logs/
+
+# Git internals (we don't need history inside the image)
+.git/
+.githooks/
+
+# Local config / secrets
+*.env
+.env
+**/application-local.yml
+**/application-local.properties
+
+# Docs and assets that don't affect the build
+*.md
+WMS-Platform-Presentation.pptx
+**/*.postman_collection.json
+
+# OS junk
+.DS_Store
+Thumbs.db

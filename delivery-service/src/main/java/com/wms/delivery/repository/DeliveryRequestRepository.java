@@ -21,6 +21,8 @@ public interface DeliveryRequestRepository
 
   List<DeliveryRequest> findByStatus(DeliveryStatus status);
 
+  List<DeliveryRequest> findByWarehouseId(UUID warehouseId);
+
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("SELECT dr FROM DeliveryRequest dr WHERE dr.id = :id")
   Optional<DeliveryRequest> findByIdForUpdate(@Param("id") UUID id);

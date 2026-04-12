@@ -120,6 +120,22 @@ configure(subprojects.filter { it.name in configClientProjects }) {
     }
 }
 
+val businessServiceProjects =
+    setOf(
+        "identity-service",
+        "inventory-service",
+        "reservation-service",
+        "delivery-service",
+        "platform-service",
+    )
+
+configure(subprojects.filter { it.name in businessServiceProjects }) {
+    dependencies {
+        implementation(rootProject.libs.springdoc.openapi.starter.webmvc.ui)
+        testRuntimeOnly(rootProject.libs.h2)
+    }
+}
+
 val libraryProjects =
     setOf(
         "wms-common",

@@ -7,5 +7,6 @@ public enum DeliveryStatus {
   DISPATCHED,
   IN_TRANSIT,
   DELIVERED,
+  ACKNOWLEDGED,
   CANCELLED
 }

@@ -10,6 +10,7 @@ import com.wms.common.exception.ResourceConflictException;
 import com.wms.common.outbox.OutboxPublisher;
 import com.wms.goods.dto.receipt.*;
 import com.wms.goods.entity.*;
+import com.wms.goods.feign.BookingClient;
 import com.wms.goods.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,9 +27,12 @@ public class GoodsReceiptService {
     private final GoodsReceiptItemRepository receiptItemRepository;
     private final GoodsItemRepository goodsItemRepository;
     private final OutboxPublisher outboxPublisher;
+    private final BookingClient bookingClient;
 
     @Transactional
     public GoodsReceiptResponse createReceipt(UUID staffId, CreateGoodsReceiptRequest request) {
+
+        verifyBookingExists(request.bookingId());
 
         GoodsReceipt receipt = GoodsReceipt.builder()
             .bookingId(request.bookingId())
@@ -111,5 +115,13 @@ public class GoodsReceiptService {
 
         return new GoodsItemAvailabilityResponse(
             item.getId(), available, item.getStatus().name());
+    }
+
+    private void verifyBookingExists(UUID bookingId) {
+        try {
+            bookingClient.getStatus(bookingId);
+        } catch (Exception ex) {
+            throw new EntityNotFoundException("Booking", bookingId);
+        }
     }
 }

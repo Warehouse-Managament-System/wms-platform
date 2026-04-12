@@ -85,6 +85,9 @@ databaseChangeLog:
       file: db/changelog/delivery/2026-03-28-create-delivery-notifications-table.yaml
 
   - include:
+      file: db/changelog/delivery/2026-04-12-add-owner-staff-acknowledge-columns.yaml
+
+  - include:
       file: db/changelog/shipment/2026-03-28-create-shipments-table.yaml
   - include:
       file: db/changelog/shipment/2026-03-28-create-shipment-checkpoints-table.yaml

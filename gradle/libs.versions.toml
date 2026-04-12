@@ -13,6 +13,8 @@ postgresql = "42.7.6"
 logback-logstash = "8.0"
 spotless = "8.2.1"
 google-java-format = "1.34.1"
+springdoc = "2.7.0"
+h2 = "2.3.232"
 
 [libraries]
 spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
@@ -53,6 +55,8 @@ testcontainers-bom = { module = "org.testcontainers:testcontainers-bom", version
 testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 testcontainers-kafka = { module = "org.testcontainers:kafka", version.ref = "testcontainers" }
 spring-kafka-test = { module = "org.springframework.kafka:spring-kafka-test" }
+springdoc-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
+h2 = { module = "com.h2database:h2", version.ref = "h2" }
 
 [plugins]
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }

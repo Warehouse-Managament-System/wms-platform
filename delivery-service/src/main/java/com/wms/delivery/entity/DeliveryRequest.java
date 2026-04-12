@@ -3,6 +3,7 @@ package com.wms.delivery.entity;
 import com.wms.common.entity.BaseEntity;
 import com.wms.common.enums.DeliveryStatus;
 import jakarta.persistence.*;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 import lombok.*;
@@ -22,6 +23,9 @@ public class DeliveryRequest extends BaseEntity {
   @Column(name = "customer_id", nullable = false)
   private UUID customerId;
 
+  @Column(name = "warehouse_id")
+  private UUID warehouseId;
+
   @Column(name = "destination_address", nullable = false, length = 255)
   private String destinationAddress;
 
@@ -37,4 +41,16 @@ public class DeliveryRequest extends BaseEntity {
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
   private DeliveryStatus status;
+
+  @Column(name = "confirmed_by")
+  private UUID confirmedBy;
+
+  @Column(name = "confirmed_at")
+  private Instant confirmedAt;
+
+  @Column(name = "assigned_staff_id")
+  private UUID assignedStaffId;
+
+  @Column(name = "acknowledged_at")
+  private Instant acknowledgedAt;
 }

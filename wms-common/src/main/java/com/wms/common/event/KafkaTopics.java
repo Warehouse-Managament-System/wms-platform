@@ -22,7 +22,9 @@ public final class KafkaTopics {
   public static final String PAYMENT_FAILED = "reservation.payment.failed";
   public static final String INVOICE_OVERDUE = "reservation.invoice.overdue";
 
+  public static final String DELIVERY_CONFIRMED = "delivery.confirmed";
   public static final String DELIVERY_READY = "delivery.ready";
   public static final String DELIVERY_CLAIMED = "delivery.claimed";
   public static final String DELIVERY_CHECKPOINT = "delivery.checkpoint";
+  public static final String DELIVERY_ACKNOWLEDGED = "delivery.acknowledged";
 }
