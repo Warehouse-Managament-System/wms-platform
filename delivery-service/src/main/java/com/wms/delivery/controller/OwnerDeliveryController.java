@@ -34,7 +34,6 @@ public class OwnerDeliveryController {
   public ResponseEntity<DeliveryRequestResponse> assignStaff(
       @PathVariable UUID id, @Valid @RequestBody AssignStaffRequest request) {
     UUID ownerId = UserContextHolder.get().userId();
-    return ResponseEntity.ok(
-        deliveryRequestService.assignStaff(id, ownerId, request.staffId()));
+    return ResponseEntity.ok(deliveryRequestService.assignStaff(id, ownerId, request.staffId()));
   }
 }

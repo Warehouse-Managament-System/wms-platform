@@ -31,8 +31,7 @@ class InternalBookingControllerIntegrationTest {
   void setUp() {
     bookingRepository = mock(BookingRepository.class);
     InternalBookingController controller = new InternalBookingController(bookingRepository);
-    mockMvc =
-        standaloneSetup(controller).setControllerAdvice(new GlobalExceptionHandler()).build();
+    mockMvc = standaloneSetup(controller).setControllerAdvice(new GlobalExceptionHandler()).build();
   }
 
   @Test

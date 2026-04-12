@@ -5,4 +5,4 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record InvoiceOverdueEvent(
-    UUID invoiceId, UUID clientId, BigDecimal amount, Instant dueDate) {}
+    UUID invoiceId, UUID customerId, BigDecimal amount, Instant dueDate) {}

@@ -40,7 +40,7 @@ public class PlatformEventListener {
   public void onGoodsImportPending(String payload) {
     JsonNode node = parse(payload);
     notificationService.create(
-        uuid(node, "clientId"),
+        uuid(node, "customerId"),
         "GOODS_IMPORT_PENDING",
         "Your goods import has been submitted and is pending approval.");
   }
@@ -53,13 +53,15 @@ public class PlatformEventListener {
         text(node, "importId"),
         text(node, "warehouseId"),
         text(node, "approvedBy"));
+    notificationService.create(
+        uuid(node, "customerId"), "GOODS_APPROVED", "Your goods import has been approved.");
   }
 
   @KafkaListener(topics = KafkaTopics.GOODS_REJECTED, groupId = "platform-notifications")
   public void onGoodsRejected(String payload) {
     JsonNode node = parse(payload);
     notificationService.create(
-        uuid(node, "rejectedBy"),
+        uuid(node, "customerId"),
         "GOODS_REJECTED",
         "Goods import has been rejected. Reason: " + text(node, "reason"));
   }
@@ -119,14 +121,16 @@ public class PlatformEventListener {
   public void onPaymentSuccess(String payload) {
     JsonNode node = parse(payload);
     notificationService.create(
-        uuid(node, "clientId"), "PAYMENT_SUCCESS", "Your payment has been processed successfully.");
+        uuid(node, "customerId"),
+        "PAYMENT_SUCCESS",
+        "Your payment has been processed successfully.");
   }
 
   @KafkaListener(topics = KafkaTopics.PAYMENT_FAILED, groupId = "platform-notifications")
   public void onPaymentFailed(String payload) {
     JsonNode node = parse(payload);
     notificationService.create(
-        uuid(node, "clientId"),
+        uuid(node, "customerId"),
         "PAYMENT_FAILED",
         "Your payment has failed. Reason: " + text(node, "failureReason"));
   }
@@ -183,7 +187,7 @@ public class PlatformEventListener {
     log.info(
         "Delivery checkpoint: shipmentId={}, status={}, location={}",
         text(node, "shipmentId"),
-        text(node, "checkpointType"),
+        text(node, "status"),
         text(node, "location"));
   }
 
@@ -197,7 +201,12 @@ public class PlatformEventListener {
   }
 
   private java.util.UUID uuid(JsonNode node, String field) {
-    return java.util.UUID.fromString(node.get(field).asText());
+    JsonNode fieldNode = node.get(field);
+    if (fieldNode == null || fieldNode.isNull()) {
+      throw new IllegalArgumentException(
+          "Required UUID field '%s' missing from event payload".formatted(field));
+    }
+    return java.util.UUID.fromString(fieldNode.asText());
   }
 
   private String text(JsonNode node, String field) {

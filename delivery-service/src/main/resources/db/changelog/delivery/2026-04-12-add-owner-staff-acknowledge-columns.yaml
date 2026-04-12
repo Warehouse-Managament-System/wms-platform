@@ -21,9 +21,8 @@ databaseChangeLog:
               - column:
                   name: acknowledged_at
                   type: TIMESTAMPTZ
-        - dropCheckConstraint:
-            tableName: delivery_requests
-            constraintName: chk_delivery_status
+        - sql:
+            sql: ALTER TABLE delivery_requests DROP CONSTRAINT IF EXISTS chk_delivery_status;
         - sql:
             sql: |
               ALTER TABLE delivery_requests

@@ -150,6 +150,11 @@ public class AuthService {
 
     User user = refreshToken.getUser();
 
+    if (user.getDeletedAt() != null || user.getStatus() != UserStatus.ACTIVE) {
+      refreshTokenRepository.delete(refreshToken);
+      throw new BusinessRuleException("Account is no longer active");
+    }
+
     String newAccessToken =
         jwtService.generateToken(user.getId(), user.getEmail(), user.getRole().name());
 

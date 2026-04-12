@@ -89,6 +89,9 @@ public class AgentClaimService {
     notification.setStatus(DeliveryNotificationStatus.CLAIMED);
     deliveryNotificationRepository.save(notification);
 
+    deliveryRequest.setStatus(DeliveryStatus.IN_TRANSIT);
+    deliveryRequestRepository.save(deliveryRequest);
+
     String trackingNumber = "TRK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
     Shipment shipment =

@@ -31,8 +31,7 @@ class UserControllerIntegrationTest {
   void setUp() {
     userService = mock(UserService.class);
     UserController controller = new UserController(userService);
-    mockMvc =
-        standaloneSetup(controller).setControllerAdvice(new GlobalExceptionHandler()).build();
+    mockMvc = standaloneSetup(controller).setControllerAdvice(new GlobalExceptionHandler()).build();
   }
 
   @Test

@@ -34,7 +34,8 @@ class CategoryServiceTest {
   @Test
   @DisplayName("create persists a new category and returns the response when the name is unique")
   void create_persistsAndReturns_whenNameIsUnique() {
-    CreateCategoryRequest request = new CreateCategoryRequest("Electronics", "Consumer electronics");
+    CreateCategoryRequest request =
+        new CreateCategoryRequest("Electronics", "Consumer electronics");
     when(categoryRepository.existsByName("Electronics")).thenReturn(false);
     when(categoryRepository.save(any(Category.class)))
         .thenAnswer(
@@ -56,7 +57,8 @@ class CategoryServiceTest {
   @Test
   @DisplayName("create throws ResourceConflictException when a category with the same name exists")
   void create_throwsConflict_whenNameAlreadyExists() {
-    CreateCategoryRequest request = new CreateCategoryRequest("Electronics", "Consumer electronics");
+    CreateCategoryRequest request =
+        new CreateCategoryRequest("Electronics", "Consumer electronics");
     when(categoryRepository.existsByName("Electronics")).thenReturn(true);
 
     assertThatThrownBy(() -> categoryService.create(request))

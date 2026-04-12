@@ -129,8 +129,7 @@ public class DeliveryRequestService {
     DeliveryRequest request = findByIdOrThrow(id);
 
     if (request.getStatus() != DeliveryStatus.CONFIRMED) {
-      throw new BusinessRuleException(
-          "Only CONFIRMED delivery requests can be assigned to staff");
+      throw new BusinessRuleException("Only CONFIRMED delivery requests can be assigned to staff");
     }
 
     request.setAssignedStaffId(staffId);
