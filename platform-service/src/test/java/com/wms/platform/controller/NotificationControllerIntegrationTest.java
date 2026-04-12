@@ -27,8 +27,7 @@ class NotificationControllerIntegrationTest {
   void setUp() {
     notificationService = mock(NotificationService.class);
     NotificationController controller = new NotificationController(notificationService);
-    mockMvc =
-        standaloneSetup(controller).setControllerAdvice(new GlobalExceptionHandler()).build();
+    mockMvc = standaloneSetup(controller).setControllerAdvice(new GlobalExceptionHandler()).build();
   }
 
   @Test
@@ -48,8 +47,6 @@ class NotificationControllerIntegrationTest {
     UUID id = UUID.randomUUID();
     doThrow(new EntityNotFoundException("Notification", id)).when(notificationService).markRead(id);
 
-    mockMvc
-        .perform(patch("/api/v1/notifications/{id}/read", id))
-        .andExpect(status().isNotFound());
+    mockMvc.perform(patch("/api/v1/notifications/{id}/read", id)).andExpect(status().isNotFound());
   }
 }

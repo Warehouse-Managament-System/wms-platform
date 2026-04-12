@@ -22,6 +22,9 @@ public class OpenApiConfig {
                         + " approval workflow.")
                 .version("v1")
                 .contact(new Contact().name("WMS Platform Team").email("team@wms.com"))
-                .license(new License().name("Apache 2.0").url("https://www.apache.org/licenses/LICENSE-2.0")));
+                .license(
+                    new License()
+                        .name("Apache 2.0")
+                        .url("https://www.apache.org/licenses/LICENSE-2.0")));
   }
 }

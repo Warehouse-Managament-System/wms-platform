@@ -34,8 +34,7 @@ class DeliveryRequestControllerIntegrationTest {
   void setUp() {
     deliveryRequestService = mock(DeliveryRequestService.class);
     DeliveryRequestController controller = new DeliveryRequestController(deliveryRequestService);
-    mockMvc =
-        standaloneSetup(controller).setControllerAdvice(new GlobalExceptionHandler()).build();
+    mockMvc = standaloneSetup(controller).setControllerAdvice(new GlobalExceptionHandler()).build();
   }
 
   @Test
@@ -55,11 +54,13 @@ class DeliveryRequestControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(body)))
         .andExpect(status().isOk());
 
-    verify(deliveryRequestService).addItem(eq(requestId), eq(goodsItemId), eq(BigDecimal.valueOf(5)));
+    verify(deliveryRequestService)
+        .addItem(eq(requestId), eq(goodsItemId), eq(BigDecimal.valueOf(5)));
   }
 
   @Test
-  @DisplayName("POST /api/v1/delivery/requests/{id}/items returns 404 when delivery request is missing")
+  @DisplayName(
+      "POST /api/v1/delivery/requests/{id}/items returns 404 when delivery request is missing")
   void addItem_returns404_whenRequestMissing() throws Exception {
     UUID requestId = UUID.randomUUID();
     UUID goodsItemId = UUID.randomUUID();

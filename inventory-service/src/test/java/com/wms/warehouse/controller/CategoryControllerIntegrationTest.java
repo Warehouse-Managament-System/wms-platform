@@ -34,14 +34,14 @@ class CategoryControllerIntegrationTest {
   void setUp() {
     categoryService = mock(CategoryService.class);
     CategoryController controller = new CategoryController(categoryService);
-    mockMvc =
-        standaloneSetup(controller).setControllerAdvice(new GlobalExceptionHandler()).build();
+    mockMvc = standaloneSetup(controller).setControllerAdvice(new GlobalExceptionHandler()).build();
   }
 
   @Test
   @DisplayName("POST /api/v1/categories creates a category and returns 201 with body")
   void createCategory_returns201() throws Exception {
-    CreateCategoryRequest request = new CreateCategoryRequest("Electronics", "Consumer electronics");
+    CreateCategoryRequest request =
+        new CreateCategoryRequest("Electronics", "Consumer electronics");
     UUID generatedId = UUID.randomUUID();
     CategoryResponse created =
         new CategoryResponse(generatedId, "Electronics", "Consumer electronics", Instant.now());
@@ -61,7 +61,8 @@ class CategoryControllerIntegrationTest {
   @Test
   @DisplayName("POST /api/v1/categories returns 409 when the category name already exists")
   void createCategory_returns409_whenDuplicate() throws Exception {
-    CreateCategoryRequest request = new CreateCategoryRequest("Electronics", "Consumer electronics");
+    CreateCategoryRequest request =
+        new CreateCategoryRequest("Electronics", "Consumer electronics");
     when(categoryService.create(any(CreateCategoryRequest.class)))
         .thenThrow(new ResourceConflictException("Category name already exists!"));
 
