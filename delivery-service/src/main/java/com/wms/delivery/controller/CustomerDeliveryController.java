@@ -27,4 +27,10 @@ public class CustomerDeliveryController {
     UUID customerId = UserContextHolder.get().userId();
     return ResponseEntity.ok(service.getByIdForCustomer(id, customerId));
   }
+
+  @PatchMapping("/{id}/acknowledge")
+  public ResponseEntity<DeliveryRequestResponse> acknowledge(@PathVariable UUID id) {
+    UUID customerId = UserContextHolder.get().userId();
+    return ResponseEntity.ok(service.acknowledge(id, customerId));
+  }
 }

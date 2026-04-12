@@ -140,6 +140,15 @@ public class PlatformEventListener {
         "Your invoice is overdue. Please make payment as soon as possible.");
   }
 
+  @KafkaListener(topics = KafkaTopics.DELIVERY_CONFIRMED, groupId = "platform-notifications")
+  public void onDeliveryConfirmed(String payload) {
+    JsonNode node = parse(payload);
+    notificationService.create(
+        uuid(node, "customerId"),
+        "DELIVERY_CONFIRMED",
+        "Your delivery request has been confirmed by the warehouse owner.");
+  }
+
   @KafkaListener(topics = KafkaTopics.DELIVERY_READY, groupId = "platform-notifications")
   public void onDeliveryReady(String payload) {
     JsonNode node = parse(payload);
@@ -157,6 +166,15 @@ public class PlatformEventListener {
         text(node, "deliveryId"),
         text(node, "agentId"),
         text(node, "trackingNumber"));
+  }
+
+  @KafkaListener(topics = KafkaTopics.DELIVERY_ACKNOWLEDGED, groupId = "platform-notifications")
+  public void onDeliveryAcknowledged(String payload) {
+    JsonNode node = parse(payload);
+    log.info(
+        "Delivery acknowledged by customer: deliveryId={}, customerId={}",
+        text(node, "deliveryId"),
+        text(node, "customerId"));
   }
 
   @KafkaListener(topics = KafkaTopics.DELIVERY_CHECKPOINT, groupId = "platform-notifications")

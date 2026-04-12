@@ -10,11 +10,16 @@ public record DeliveryRequestResponse(
     UUID id,
     UUID bookingId,
     UUID customerId,
+    UUID warehouseId,
     String destinationAddress,
     String destinationCity,
     String destinationCountry,
     LocalDate requestedDate,
     DeliveryStatus status,
+    UUID confirmedBy,
+    Instant confirmedAt,
+    UUID assignedStaffId,
+    Instant acknowledgedAt,
     Instant createdAt,
     Instant updatedAt) {
   public static DeliveryRequestResponse from(DeliveryRequest dr) {
@@ -22,11 +27,16 @@ public record DeliveryRequestResponse(
         dr.getId(),
         dr.getBookingId(),
         dr.getCustomerId(),
+        dr.getWarehouseId(),
         dr.getDestinationAddress(),
         dr.getDestinationCity(),
         dr.getDestinationCountry(),
         dr.getRequestedDate(),
         dr.getStatus(),
+        dr.getConfirmedBy(),
+        dr.getConfirmedAt(),
+        dr.getAssignedStaffId(),
+        dr.getAcknowledgedAt(),
         dr.getCreatedAt(),
         dr.getUpdatedAt());
   }

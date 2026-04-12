@@ -23,6 +23,12 @@ public class StaffDeliveryController {
     return ResponseEntity.ok(deliveryRequestService.listAll());
   }
 
+  @PatchMapping("/{id}/accept")
+  public ResponseEntity<DeliveryRequestResponse> accept(@PathVariable UUID id) {
+    UUID staffId = UserContextHolder.get().userId();
+    return ResponseEntity.ok(deliveryRequestService.acceptByStaff(id, staffId));
+  }
+
   @PatchMapping("/{id}/start-picking")
   public ResponseEntity<Void> startPicking(@PathVariable UUID id) {
     UUID staffId = UserContextHolder.get().userId();

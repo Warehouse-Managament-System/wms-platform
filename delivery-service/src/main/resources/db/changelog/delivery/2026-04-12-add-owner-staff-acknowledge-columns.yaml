@@ -1,0 +1,43 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2026-04-12-add-delivery-request-workflow-columns
+      author: Ali Ramazanov
+      changes:
+        - addColumn:
+            tableName: delivery_requests
+            columns:
+              - column:
+                  name: warehouse_id
+                  type: UUID
+              - column:
+                  name: confirmed_by
+                  type: UUID
+              - column:
+                  name: confirmed_at
+                  type: TIMESTAMPTZ
+              - column:
+                  name: assigned_staff_id
+                  type: UUID
+              - column:
+                  name: acknowledged_at
+                  type: TIMESTAMPTZ
+        - dropCheckConstraint:
+            tableName: delivery_requests
+            constraintName: chk_delivery_status
+        - sql:
+            sql: |
+              ALTER TABLE delivery_requests
+                ADD CONSTRAINT chk_delivery_status
+                CHECK (status IN ('PENDING', 'CONFIRMED', 'PICKING', 'DISPATCHED', 'IN_TRANSIT', 'DELIVERED', 'ACKNOWLEDGED', 'CANCELLED'));
+        - createIndex:
+            indexName: idx_delivery_requests_warehouse_id
+            tableName: delivery_requests
+            columns:
+              - column:
+                  name: warehouse_id
+        - createIndex:
+            indexName: idx_delivery_requests_assigned_staff_id
+            tableName: delivery_requests
+            columns:
+              - column:
+                  name: assigned_staff_id

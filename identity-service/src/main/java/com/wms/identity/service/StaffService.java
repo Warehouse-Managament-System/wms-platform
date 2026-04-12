@@ -10,6 +10,7 @@ import com.wms.identity.dto.staff.StaffResponse;
 import com.wms.identity.dto.staff.UpdateStaffRequest;
 import com.wms.identity.entity.Staff;
 import com.wms.identity.entity.User;
+import com.wms.identity.feign.WarehouseClient;
 import com.wms.identity.repository.StaffRepository;
 import com.wms.identity.repository.UserRepository;
 import com.wms.identity.specification.StaffSpecification;
@@ -29,12 +30,15 @@ public class StaffService {
   private final StaffRepository staffRepository;
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
+  private final WarehouseClient warehouseClient;
 
   @Transactional
   public StaffResponse create(CreateStaffRequest request) {
     if (userRepository.existsByEmailAndDeletedAtIsNull(request.email())) {
       throw new ResourceConflictException("Email already registered");
     }
+
+    verifyWarehouseExists(request.warehouseId());
 
     User user =
         User.builder()
@@ -116,6 +120,7 @@ public class StaffService {
     Staff staff = findByIdOrThrow(id);
 
     if (request.warehouseId() != null) {
+      verifyWarehouseExists(request.warehouseId());
       staff.setWarehouseId(request.warehouseId());
     }
 
@@ -124,6 +129,14 @@ public class StaffService {
     }
 
     return StaffResponse.from(staffRepository.save(staff));
+  }
+
+  private void verifyWarehouseExists(UUID warehouseId) {
+    try {
+      warehouseClient.verifyExists(warehouseId);
+    } catch (Exception ex) {
+      throw new EntityNotFoundException("Warehouse", warehouseId);
+    }
   }
 
   @Transactional

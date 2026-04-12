@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-@EnableFeignClients
+@EnableFeignClients(basePackages = {"com.wms.inventory", "com.wms.warehouse", "com.wms.goods"})
 @EnableScheduling
 @ComponentScan(
     basePackages = {
