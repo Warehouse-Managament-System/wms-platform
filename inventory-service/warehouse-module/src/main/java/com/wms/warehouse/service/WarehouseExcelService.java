@@ -1,21 +1,30 @@
 package com.wms.warehouse.service;
 
 import com.wms.common.enums.ImportStatus;
+import com.wms.common.enums.RoomStatus;
 import com.wms.common.enums.TemperatureType;
 import com.wms.common.enums.ZoneStatus;
 import com.wms.common.exception.BusinessRuleException;
 import com.wms.common.exception.EntityNotFoundException;
 import com.wms.warehouse.dto.excelimport.WarehouseExcelImportResponse;
+import com.wms.warehouse.entity.Category;
+import com.wms.warehouse.entity.Room;
 import com.wms.warehouse.entity.Warehouse;
 import com.wms.warehouse.entity.WarehouseExcelImport;
+import com.wms.warehouse.entity.Zone;
+import com.wms.warehouse.repository.CategoryRepository;
+import com.wms.warehouse.repository.RoomRepository;
 import com.wms.warehouse.repository.WarehouseExcelImportRepository;
 import com.wms.warehouse.repository.WarehouseRepository;
+import com.wms.warehouse.repository.ZoneRepository;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +40,9 @@ public class WarehouseExcelService {
 
   private final WarehouseRepository warehouseRepository;
   private final WarehouseExcelImportRepository importRepository;
+  private final ZoneRepository zoneRepository;
+  private final RoomRepository roomRepository;
+  private final CategoryRepository categoryRepository;
 
   public byte[] generateTemplate() {
     try (Workbook workbook = new XSSFWorkbook()) {
@@ -116,8 +128,17 @@ public class WarehouseExcelService {
     int successRows = 0;
     int failedRows = 0;
 
+    // Track created zones by name for room assignment
+    Map<String, Zone> createdZones = new HashMap<>();
+
+    // Pre-load existing zones for this warehouse
+    for (Zone existing : zoneRepository.findByWarehouseId(warehouseId)) {
+      createdZones.put(existing.getName(), existing);
+    }
+
     try (Workbook workbook = new XSSFWorkbook(excelStream)) {
 
+      // --- Pass 1: Zones ---
       Sheet zonesSheet = workbook.getSheet("Zones");
 
       if (zonesSheet != null) {
@@ -130,6 +151,9 @@ public class WarehouseExcelService {
 
           try {
             validateZoneRow(row, i);
+            Zone zone = buildZone(row, warehouse);
+            zone = zoneRepository.save(zone);
+            createdZones.put(zone.getName(), zone);
             successRows++;
           } catch (Exception e) {
             failedRows++;
@@ -138,6 +162,7 @@ public class WarehouseExcelService {
         }
       }
 
+      // --- Pass 2: Rooms (require zones to exist) ---
       Sheet roomsSheet = workbook.getSheet("Rooms");
 
       if (roomsSheet != null) {
@@ -151,6 +176,14 @@ public class WarehouseExcelService {
 
           try {
             validateRoomRow(row, i);
+            String zoneName = getStringCell(row, 0);
+            Zone zone = createdZones.get(zoneName);
+            if (zone == null) {
+              throw new IllegalArgumentException(
+                  "Zone '" + zoneName + "' not found — create it in the Zones sheet first");
+            }
+            Room room = buildRoom(row, zone);
+            roomRepository.save(room);
             successRows++;
           } catch (Exception e) {
             failedRows++;
@@ -159,6 +192,7 @@ public class WarehouseExcelService {
         }
       }
 
+      // --- Pass 3: Categories ---
       Sheet categoriesSheet = workbook.getSheet("Categories");
       if (categoriesSheet != null) {
         for (int i = 1; i <= categoriesSheet.getLastRowNum(); i++) {
@@ -171,6 +205,15 @@ public class WarehouseExcelService {
 
           try {
             validateCategoryRow(row, i);
+            String name = getStringCell(row, 0);
+            if (!categoryRepository.existsByName(name)) {
+              Category category =
+                  Category.builder()
+                      .name(name)
+                      .description(getStringCell(row, 1))
+                      .build();
+              categoryRepository.save(category);
+            }
             successRows++;
           } catch (Exception e) {
             failedRows++;
@@ -205,6 +248,30 @@ public class WarehouseExcelService {
         failedRows);
 
     return WarehouseExcelImportResponse.from(importRecord);
+  }
+
+  private Zone buildZone(Row row, Warehouse warehouse) {
+    return Zone.builder()
+        .warehouse(warehouse)
+        .name(getStringCell(row, 0))
+        .description(getStringCell(row, 1))
+        .temperatureType(TemperatureType.valueOf(getStringCell(row, 2)))
+        .totalSurfaceArea(BigDecimal.valueOf(getNumericCell(row, 3)))
+        .status(ZoneStatus.valueOf(getStringCell(row, 4)))
+        .build();
+  }
+
+  private Room buildRoom(Row row, Zone zone) {
+    return Room.builder()
+        .zone(zone)
+        .name(getStringCell(row, 1))
+        .description(getStringCell(row, 2))
+        .totalSurfaceArea(BigDecimal.valueOf(getNumericCell(row, 3)))
+        .pricePerSqmDaily(BigDecimal.valueOf(getNumericCell(row, 4)))
+        .pricePerSqmWeekly(BigDecimal.valueOf(getNumericCell(row, 5)))
+        .pricePerSqmMonthly(BigDecimal.valueOf(getNumericCell(row, 6)))
+        .status(RoomStatus.AVAILABLE)
+        .build();
   }
 
   private void validateZoneRow(Row row, int rowIndex) {

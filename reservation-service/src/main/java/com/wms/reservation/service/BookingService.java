@@ -228,7 +228,8 @@ public class BookingService {
         "Booking",
         booking.getId(),
         KafkaTopics.BOOKING_CANCELLED,
-        new BookingCancelledEvent(booking.getId(), booking.getCustomerId(), reason));
+        new BookingCancelledEvent(
+            booking.getId(), booking.getCustomerId(), booking.getRoomId(), reason));
 
     return BookingResponse.from(booking);
   }
@@ -255,7 +256,8 @@ public class BookingService {
         "Booking",
         booking.getId(),
         KafkaTopics.BOOKING_CANCELLED,
-        new BookingCancelledEvent(booking.getId(), booking.getCustomerId(), reason));
+        new BookingCancelledEvent(
+            booking.getId(), booking.getCustomerId(), booking.getRoomId(), reason));
 
     return booking;
   }
@@ -297,7 +299,7 @@ public class BookingService {
           "Booking",
           booking.getId(),
           KafkaTopics.BOOKING_EXPIRED,
-          new BookingExpiredEvent(booking.getId(), booking.getCustomerId()));
+          new BookingExpiredEvent(booking.getId(), booking.getCustomerId(), booking.getRoomId()));
 
       log.info("Booking expired: {}", booking.getId());
     }

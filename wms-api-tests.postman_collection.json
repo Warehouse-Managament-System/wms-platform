@@ -737,7 +737,7 @@
           ]
         },
         {
-          "name": "2.3 Search Users by Status (PENDING)",
+          "name": "2.3 Search Users by Status (PENDING_APPROVAL)",
           "request": {
             "method": "GET",
             "header": [
@@ -747,7 +747,7 @@
               }
             ],
             "url": {
-              "raw": "{{identityUrl}}/api/v1/users?status=PENDING&page=0&size=20",
+              "raw": "{{identityUrl}}/api/v1/users?status=PENDING_APPROVAL&page=0&size=20",
               "host": [
                 "{{identityUrl}}"
               ],
@@ -759,7 +759,7 @@
               "query": [
                 {
                   "key": "status",
-                  "value": "PENDING"
+                  "value": "PENDING_APPROVAL"
                 },
                 {
                   "key": "page",
@@ -780,7 +780,7 @@
                   "pm.test('Status is 200', () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
                   "pm.test('All results are PENDING', () => {",
-                  "  json.content.forEach(u => pm.expect(u.status).to.eql('PENDING'));",
+                  "  json.content.forEach(u => pm.expect(u.status).to.eql('PENDING_APPROVAL'));",
                   "});"
                 ]
               }
@@ -903,7 +903,10 @@
                   "if (json.content.length > 0) {",
                   "  const o = json.content.find(x => x.email === pm.collectionVariables.get('ownerEmail'));",
                   "  if (o) pm.collectionVariables.set('ownerId', o.id);",
-                  "}"
+                  "}",
+                  "const owners = json.content || json;",
+                  "const second = owners.find(o => o.companyName && o.companyName.includes('Second'));",
+                  "if (second) pm.collectionVariables.set('secondOwnerId', second.id);"
                 ]
               }
             }
@@ -1399,8 +1402,8 @@
                 "exec": [
                   "pm.test('Status is 200', () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test('Is array', () => pm.expect(json).to.be.an('array'));",
-                  "pm.test('Has at least 2 owners', () => pm.expect(json.length).to.be.at.least(2));"
+                  "pm.test('Has content array', () => pm.expect(json.content).to.be.an('array'));",
+                  "pm.test('At least 2 owners', () => pm.expect(json.content.length).to.be.at.least(1));"
                 ]
               }
             }
@@ -1606,7 +1609,8 @@
                   "const json = pm.response.json();",
                   "pm.test('Has ID', () => pm.expect(json.id).to.be.a('string'));",
                   "pm.test('Position matches', () => pm.expect(json.position).to.eql('Warehouse Manager'));",
-                  "pm.collectionVariables.set('staffId', json.id);"
+                  "pm.collectionVariables.set('staffId', json.id);",
+                  "pm.collectionVariables.set('staffUserId', json.userId);"
                 ]
               }
             }
@@ -1659,7 +1663,7 @@
               }
             ],
             "url": {
-              "raw": "{{identityUrl}}/api/v1/staff/by-user/{{customerUserId}}",
+              "raw": "{{identityUrl}}/api/v1/staff/by-user/{{staffUserId}}",
               "host": [
                 "{{identityUrl}}"
               ],
@@ -1668,7 +1672,7 @@
                 "v1",
                 "staff",
                 "by-user",
-                "{{customerUserId}}"
+                "{{staffUserId}}"
               ]
             }
           },
@@ -1837,7 +1841,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": \"{{customerUserId}}\",\n  \"warehouseId\": \"00000000-0000-0000-0000-000000000001\",\n  \"position\": \"Unauthorized\"\n}"
+              "raw": "{\n  \"email\": \"unauthorized@test.com\",\n  \"password\": \"Unauth@123456\",\n  \"firstName\": \"Unauth\",\n  \"lastName\": \"User\",\n  \"warehouseId\": \"00000000-0000-0000-0000-000000000001\",\n  \"position\": \"Unauthorized\"\n}"
             },
             "url": {
               "raw": "{{identityUrl}}/api/v1/staff",
@@ -1939,8 +1943,9 @@
                   "pm.test('Status is 201', () => pm.response.to.have.status(201));",
                   "const json = pm.response.json();",
                   "pm.test('Has ID', () => pm.expect(json.id).to.be.a('string'));",
-                  "pm.test('Vehicle info matches', () => pm.expect(json.vehicleInfo).to.eql('White Mercedes Sprinter, plate 10-AA-010'));",
-                  "pm.collectionVariables.set('deliveryAgentId', json.id);"
+                  "pm.test('Vehicle info matches', () => pm.expect(json.vehicleInfo).to.eql('Van - AZ 01 AA 001'));",
+                  "pm.collectionVariables.set('deliveryAgentId', json.id);",
+                  "pm.collectionVariables.set('agentUserId', json.userId);"
                 ]
               }
             }
@@ -1993,7 +1998,7 @@
               }
             ],
             "url": {
-              "raw": "{{identityUrl}}/api/v1/delivery-agents/by-user/{{customerUserId}}",
+              "raw": "{{identityUrl}}/api/v1/delivery-agents/by-user/{{agentUserId}}",
               "host": [
                 "{{identityUrl}}"
               ],
@@ -2002,7 +2007,7 @@
                 "v1",
                 "delivery-agents",
                 "by-user",
-                "{{customerUserId}}"
+                "{{agentUserId}}"
               ]
             }
           },
@@ -2564,6 +2569,11 @@
               {
                 "key": "X-User-Email",
                 "value": "{{ownerEmail}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}",
+                "type": "string"
               }
             ],
             "body": {
@@ -2615,6 +2625,11 @@
               {
                 "key": "X-User-Email",
                 "value": "{{ownerEmail}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -2670,6 +2685,11 @@
               {
                 "key": "X-User-Email",
                 "value": "{{ownerEmail}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -2730,6 +2750,11 @@
               {
                 "key": "X-User-Email",
                 "value": "{{ownerEmail}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -2779,6 +2804,11 @@
               {
                 "key": "X-User-Email",
                 "value": "{{ownerEmail}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}",
+                "type": "string"
               }
             ],
             "body": {
@@ -2828,6 +2858,11 @@
               {
                 "key": "X-User-Email",
                 "value": "{{ownerEmail}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -2878,6 +2913,11 @@
               {
                 "key": "X-User-Email",
                 "value": "{{ownerEmail}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}",
+                "type": "string"
               }
             ],
             "body": {
@@ -2930,6 +2970,11 @@
               {
                 "key": "X-User-Email",
                 "value": "{{ownerEmail}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -2981,6 +3026,11 @@
               {
                 "key": "X-User-Email",
                 "value": "{{ownerEmail}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}",
+                "type": "string"
               }
             ],
             "body": {
@@ -3045,6 +3095,11 @@
               {
                 "key": "X-User-Email",
                 "value": "{{ownerEmail}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -3605,6 +3660,11 @@
               {
                 "key": "X-User-Email",
                 "value": "owner@test.com"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}",
+                "type": "string"
               }
             ],
             "body": {
@@ -3662,6 +3722,11 @@
               {
                 "key": "X-User-Email",
                 "value": "owner@test.com"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}",
+                "type": "string"
               }
             ],
             "body": {
@@ -3715,6 +3780,11 @@
               {
                 "key": "X-User-Email",
                 "value": "owner@test.com"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}",
+                "type": "string"
               }
             ],
             "body": {
@@ -3767,6 +3837,11 @@
               {
                 "key": "X-User-Email",
                 "value": "owner@test.com"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}",
+                "type": "string"
               }
             ],
             "body": {
@@ -3819,6 +3894,11 @@
               {
                 "key": "X-User-Email",
                 "value": "owner@test.com"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}",
+                "type": "string"
               }
             ],
             "body": {
@@ -3871,6 +3951,11 @@
               {
                 "key": "X-User-Email",
                 "value": "owner@test.com"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}",
+                "type": "string"
               }
             ],
             "body": {
@@ -3925,6 +4010,11 @@
               {
                 "key": "X-User-Email",
                 "value": "owner@test.com"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}",
+                "type": "string"
               }
             ],
             "body": {
@@ -4549,6 +4639,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{ownerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{ownerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "WAREHOUSE_OWNER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{ownerEmail}}",
+                "type": "string"
               }
             ],
             "body": {
@@ -4597,6 +4702,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{ownerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{ownerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "WAREHOUSE_OWNER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{ownerEmail}}",
+                "type": "string"
               }
             ],
             "body": {
@@ -4642,6 +4762,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{ownerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{ownerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "WAREHOUSE_OWNER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{ownerEmail}}",
+                "type": "string"
               }
             ],
             "body": {
@@ -4687,6 +4822,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{ownerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{ownerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "WAREHOUSE_OWNER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{ownerEmail}}",
+                "type": "string"
               }
             ],
             "body": {
@@ -4732,6 +4882,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{ownerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{ownerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "WAREHOUSE_OWNER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{ownerEmail}}",
+                "type": "string"
               }
             ],
             "body": {
@@ -4776,6 +4941,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{ownerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{ownerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "WAREHOUSE_OWNER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{ownerEmail}}",
+                "type": "string"
               }
             ],
             "body": {
@@ -4847,6 +5027,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{ownerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{ownerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "WAREHOUSE_OWNER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{ownerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -4888,6 +5083,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{ownerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{ownerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "WAREHOUSE_OWNER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{ownerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -4925,6 +5135,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{customerEmail}}",
+                "type": "string"
               }
             ],
             "body": {
@@ -4966,6 +5191,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{customerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -5001,6 +5241,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{customerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -5037,6 +5292,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{ownerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{ownerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "WAREHOUSE_OWNER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{ownerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -5077,6 +5347,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{ownerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{ownerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "WAREHOUSE_OWNER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{ownerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -5114,6 +5399,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{customerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -5151,6 +5451,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{ownerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{ownerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "WAREHOUSE_OWNER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{ownerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -5191,6 +5506,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{customerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -5270,6 +5600,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{customerEmail}}",
+                "type": "string"
               }
             ],
             "body": {
@@ -5309,6 +5654,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{customerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -5350,6 +5710,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{customerEmail}}",
+                "type": "string"
               }
             ],
             "body": {
@@ -5389,6 +5764,26 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{ownerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{ownerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "WAREHOUSE_OWNER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{ownerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -5404,6 +5799,15 @@
                 "{{rejectBookingId}}",
                 "reject"
               ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Does not meet warehouse requirements\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "event": [
@@ -5426,6 +5830,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{customerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -5466,15 +5885,40 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "multipart/form-data"
               },
               {
                 "key": "Authorization",
                 "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{customerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
               "raw": "{{inventoryUrl}}/api/v1/customer/bookings/{{bookingId}}/goods/import"
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "/path/to/goods-import.xlsx"
+                }
+              ]
             }
           },
           "event": [
@@ -5508,6 +5952,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{ownerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{ownerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "WAREHOUSE_OWNER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{ownerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -5541,6 +6000,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{ownerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{ownerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "WAREHOUSE_OWNER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{ownerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -5576,6 +6050,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{staffToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{staffUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "STAFF",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{staff@test.com}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -5611,6 +6100,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{staffToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{staffUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "STAFF",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{staff@test.com}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -5644,6 +6148,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{staffToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{staffUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "STAFF",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{staff@test.com}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -5775,6 +6294,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{customerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -5808,6 +6342,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{customerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -5841,6 +6390,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{staffToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{staffUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "STAFF",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{staff@test.com}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -5870,6 +6434,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{staffToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{staffUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "STAFF",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{staff@test.com}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -5903,6 +6482,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{staffToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{staffUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "STAFF",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{staff@test.com}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -5932,6 +6526,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{staffToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{staffUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "STAFF",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{staff@test.com}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -5961,6 +6570,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{agentToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{agentUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "DELIVERY_AGENT",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{agent@test.com}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -5990,6 +6614,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{agentToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{agentUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "DELIVERY_AGENT",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{agent@test.com}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -6019,6 +6658,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{agentToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{agentUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "DELIVERY_AGENT",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{agent@test.com}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -6052,6 +6706,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{agentToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{agentUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "DELIVERY_AGENT",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{agent@test.com}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -6085,6 +6754,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{agentToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{agentUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "DELIVERY_AGENT",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{agent@test.com}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -6118,6 +6802,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{agentToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{agentUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "DELIVERY_AGENT",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{agent@test.com}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -6151,6 +6850,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{agentToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{agentUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "DELIVERY_AGENT",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{agent@test.com}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -6180,6 +6894,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{customerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -6358,6 +7087,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{customerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -6387,6 +7131,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{customerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -6416,6 +7175,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{staffToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{staffUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "STAFF",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{staff@test.com}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -6445,6 +7219,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{agentToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{agentUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "DELIVERY_AGENT",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{agent@test.com}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -6474,6 +7263,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{agentToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{agentUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "DELIVERY_AGENT",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{agent@test.com}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -6503,6 +7307,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{customerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -6532,6 +7351,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{ownerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{ownerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "WAREHOUSE_OWNER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{ownerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -6561,6 +7395,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{ownerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{ownerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "WAREHOUSE_OWNER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{ownerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -6590,6 +7439,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{customerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -6619,6 +7483,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{staffToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{staffUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "STAFF",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{staff@test.com}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -6714,6 +7593,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{customerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -6743,6 +7637,21 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Role",
+                "value": "CUSTOMER",
+                "type": "string"
+              },
+              {
+                "key": "X-User-Email",
+                "value": "{{customerEmail}}",
+                "type": "string"
               }
             ],
             "url": {
@@ -6778,7 +7687,8 @@
                 "actuator",
                 "health"
               ]
-            }
+            },
+            "header": []
           },
           "event": [
             {
@@ -6804,7 +7714,8 @@
                 "actuator",
                 "health"
               ]
-            }
+            },
+            "header": []
           },
           "event": [
             {
@@ -6830,7 +7741,8 @@
                 "actuator",
                 "health"
               ]
-            }
+            },
+            "header": []
           },
           "event": [
             {
@@ -6856,7 +7768,8 @@
                 "actuator",
                 "health"
               ]
-            }
+            },
+            "header": []
           },
           "event": [
             {
@@ -6882,7 +7795,8 @@
                 "actuator",
                 "health"
               ]
-            }
+            },
+            "header": []
           },
           "event": [
             {
@@ -6908,7 +7822,8 @@
                 "actuator",
                 "health"
               ]
-            }
+            },
+            "header": []
           },
           "event": [
             {

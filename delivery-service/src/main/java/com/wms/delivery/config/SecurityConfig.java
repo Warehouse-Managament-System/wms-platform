@@ -46,6 +46,8 @@ public class SecurityConfig {
                     .hasAnyRole("STAFF", "WAREHOUSE_OWNER", "SUPER_ADMIN")
                     .requestMatchers("/api/v1/agent/**")
                     .hasAnyRole("DELIVERY_AGENT", "SUPER_ADMIN")
+                    .requestMatchers("/api/v1/owner/**")
+                    .hasAnyRole("WAREHOUSE_OWNER", "SUPER_ADMIN")
                     .anyRequest()
                     .authenticated())
         .sessionManagement(

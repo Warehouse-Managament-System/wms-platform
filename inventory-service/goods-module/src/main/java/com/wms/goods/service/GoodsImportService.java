@@ -99,7 +99,8 @@ public class GoodsImportService {
             "GoodsImport",
             id,
             KafkaTopics.GOODS_APPROVED,
-            new GoodsApprovedEvent(id, importRecord.getWarehouseId(), ownerId));
+            new GoodsApprovedEvent(
+                id, importRecord.getWarehouseId(), importRecord.getCustomerId(), ownerId));
     }
 
     @Transactional
@@ -120,7 +121,8 @@ public class GoodsImportService {
             "GoodsImport",
             id,
             KafkaTopics.GOODS_REJECTED,
-            new GoodsRejectedEvent(id, importRecord.getWarehouseId(), request.reason()));
+            new GoodsRejectedEvent(
+                id, importRecord.getWarehouseId(), importRecord.getCustomerId(), request.reason()));
     }
 
     @Transactional(readOnly = true)
